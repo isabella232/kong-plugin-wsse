@@ -6,7 +6,7 @@ function is_ready {
     psql -h $KONG_PG_HOST -U kong -c "select 1" 1>/dev/null 2>/dev/null
 }
 
-retry_count=50
+retry_count=70
 counter=0
 
 is_ready
