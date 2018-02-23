@@ -1,6 +1,6 @@
 FROM kong:0.12.1
 
-RUN yum install -y gcc git unzip
+RUN yum install -y gcc git unzip postgresql
 
 ENV PATH=$PATH:/usr/local/bin:/usr/local/openresty/bin:/opt/stap/bin:/usr/local/stapxx:/usr/local/openresty/nginx/sbin
 
@@ -10,4 +10,6 @@ RUN cd kong && make dev
 
 EXPOSE 8000 8001 8443 8444
 
-CMD /kong/bin/kong start --v
+COPY docker-entrypoint.sh docker-entrypoint.sh
+
+CMD /docker-entrypoint.sh
