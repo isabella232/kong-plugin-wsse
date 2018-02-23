@@ -10,6 +10,7 @@ RUN cd kong && make dev
 
 EXPOSE 8000 8001 8443 8444
 
-COPY docker-entrypoint.sh docker-entrypoint.sh
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+ENTRYPOINT ["/docker-entrypoint.sh"]
 
-CMD /docker-entrypoint.sh
+CMD ["/kong/bin/kong", "start", "--v"]

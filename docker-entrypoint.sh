@@ -28,5 +28,5 @@ if [ $counter -eq $retry_count ] ; then
     exit 1
 else
     echo "PostgreSQL is available"
-    /kong/bin/kong start --v
+    exec "$@"
 fi
