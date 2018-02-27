@@ -18,10 +18,18 @@ describe("wsse plugin", function()
         set_header = function(header_name, header_value)
           ngx_req_headers[header_name] = header_value
         end
-        }
+        },
+      ctx = {},
+      header = {},
+      log = function(...) end,
+      say = function(...) end,
+      exit = function(...) end
     }
 
     _G.ngx = stubbed_ngx
+    stub(stubbed_ngx, "say")
+    stub(stubbed_ngx, "exit")
+    stub(stubbed_ngx, "log")
 
     handler = plugin_handler()
   end)

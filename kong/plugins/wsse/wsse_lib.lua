@@ -18,13 +18,7 @@ local function parse_field(header_string, field_name)
     return string.match(header_string, '[, ]' .. field_name_case_insensitive .. '%s*=%s*"(.-)"')
 end
 
-function Wsse:new()
-    self.__index = self
-    local self = setmetatable({}, self)
-    return self
-end
-
-function Wsse:check_header(header_string)
+local function parse_header(header_string)
     if (header_string == "") then
         error("error")
     end
@@ -35,6 +29,18 @@ function Wsse:check_header(header_string)
         nonce = parse_field(header_string, 'Nonce'),
         created = parse_field(header_string, 'Created')
     }
+
+    return wsse_params
+end
+
+function Wsse:new()
+    self.__index = self
+    local self = setmetatable({}, self)
+    return self
+end
+
+function Wsse:authenticate(header_string)
+    local wsse_params = parse_header(header_string)
 
     check_required_params(wsse_params)
 end

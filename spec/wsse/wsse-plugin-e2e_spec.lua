@@ -61,8 +61,8 @@ describe("Plugin: wsse (access)", function()
     end)
   end)
 
-  describe("Authenticate", function()
-    it("response with satus 401 if request not has wsse header and anonymous not allowed", function()
+  describe("Authentication", function()
+    it("responds with status 401 if request not has wsse header and anonymous not allowed", function()
       local res = assert(client:send {
         method = "GET",
         path = "/request",
@@ -74,13 +74,26 @@ describe("Plugin: wsse (access)", function()
       assert.res_status(401, res)
     end)
 
-    it("response with satus 200 if request has wsse header", function()
+    it("responds with status 401 when wsse header format is invalid", function()
       local res = assert(client:send {
         method = "GET",
         path = "/request",
         headers = {
           ["Host"] = "test1.com",
           ["X-WSSE"] = "some wsse header string"
+        }
+      })
+
+      assert.res_status(401, res)
+    end)
+
+    it("responds with status 200 when wsse header format is valid", function()
+      local res = assert(client:send {
+        method = "GET",
+        path = "/request",
+        headers = {
+          ["Host"] = "test1.com",
+          ["X-WSSE"] = 'UsernameToken Username="test", PasswordDigest="ODM3MmJiN2U2OTA2ZDhjMDlkYWExY2ZlNDYxODBjYTFmYTU0Y2I0Mg==", Nonce="4603fcf8f0fb2ea03a41ff007ea70d25", Created="2018-02-27T09:46:22Z"'
         }
       })
 
