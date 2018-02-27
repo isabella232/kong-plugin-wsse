@@ -15,6 +15,7 @@ function WsseHandler:access(conf)
 
     if (ngx.req.get_headers()["X-WSSE"]) then
         ngx.req.set_header(constants.HEADERS.ANONYMOUS, nil)
+        -- wsse_lib
     elseif (conf.anonymous == nil) then
         return responses.send(401, "WSSE header not found!")
     else
