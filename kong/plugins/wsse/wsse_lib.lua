@@ -1,3 +1,7 @@
+local base64 = require "base64"
+local sha1 = require "sha1"
+local uuid = require("uuid")
+
 local Wsse = {}
 
 local function check_required_params(wsse_params)
@@ -43,6 +47,18 @@ function Wsse:authenticate(header_string)
     local wsse_params = parse_header(header_string)
 
     check_required_params(wsse_params)
+end
+
+function Wsse:generate_header(username, secret, created, nonce)
+    if username == nil or secret == nil then
+        error("Username and secret are required!")
+    end
+
+    created = created or os.date("!%Y-%m-%dT%TZ")
+    nonce = nonce or uuid()
+    local digest = base64.encode(sha1(nonce .. created .. secret))
+
+    return string.format('UsernameToken Username="%s", PasswordDigest="%s", Nonce="%s", Created="%s"', username, digest, nonce, created)
 end
 
 return Wsse

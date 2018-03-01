@@ -1,22 +1,9 @@
 local wsse_lib = require "kong.plugins.wsse.wsse_lib"
-local base64 = require "base64"
-local sha1 = require "sha1"
-local uuid = require("uuid")
 
 describe("wsse lib", function()
 
     local wsse = wsse_lib:new()
-
-    local function generate_wsse_header(username, secret, created)
-        if created == nil then
-            created = os.date("!%Y-%m-%dT%TZ")
-        end
-
-        local nonce = uuid()
-        local digest = base64.encode(sha1(nonce .. created .. secret))
-
-        return string.format('UsernameToken Username="%s", PasswordDigest="%s", Nonce="%s", Created="%s"', username, digest, nonce, created)
-    end
+    local test_wsse_header = wsse:generate_header('test', 'test')
 
     describe("#check_header", function()
 
@@ -25,27 +12,45 @@ describe("wsse lib", function()
         end)
 
         it("do not raise error when WSSE header is a valid wsse header string", function()
-            assert.has_no.errors(function() wsse:authenticate(generate_wsse_header('test', 'test')) end)
+            assert.has_no.errors(function() wsse:authenticate(test_wsse_header) end)
         end)
 
         it("raise error when PasswordDigest is missing from WSSE header", function()
-            assert.has_error(function() wsse:authenticate('UsernameToken Username="test", Nonce="4603fcf8f0fb2ea03a41ff007ea70d25", Created="2018-02-27T09:46:22Z"') end)
+            partial_test_wsse_header = string.gsub(test_wsse_header, "PasswordDigest=\"[^,]+\",", "")
+            assert.has_error(function() wsse:authenticate(partial_test_wsse_header) end)
         end)
 
         it("raise error when Username is missing from WSSE header", function()
-            assert.has_error(function() wsse:authenticate('UsernameToken PasswordDigest="ODM3MmJiN2U2OTA2ZDhjMDlkYWExY2ZlNDYxODBjYTFmYTU0Y2I0Mg==", Nonce="4603fcf8f0fb2ea03a41ff007ea70d25", Created="2018-02-27T09:46:22Z"') end)
+            partial_test_wsse_header = string.gsub(test_wsse_header, "Username=\"[^,]+\",", "")
+            assert.has_error(function() wsse:authenticate(partial_test_wsse_header) end)
         end)
 
         it("raise error when Nonce is missing from WSSE header", function()
-            assert.has_error(function() wsse:authenticate('UsernameToken Username="test", PasswordDigest="ODM3MmJiN2U2OTA2ZDhjMDlkYWExY2ZlNDYxODBjYTFmYTU0Y2I0Mg==", Created="2018-02-27T09:46:22Z"') end)
+            partial_test_wsse_header = string.gsub(test_wsse_header, "Nonce=\"[^,]+\",", "")
+            assert.has_error(function() wsse:authenticate(partial_test_wsse_header) end)
         end)
 
         it("raise error when Created is missing from WSSE header", function()
-            assert.has_error(function() wsse:authenticate('UsernameToken Username="test", PasswordDigest="ODM3MmJiN2U2OTA2ZDhjMDlkYWExY2ZlNDYxODBjYTFmYTU0Y2I0Mg==", Nonce="4603fcf8f0fb2ea03a41ff007ea70d25"') end)
+            partial_test_wsse_header = string.gsub(test_wsse_header, "Created=\"[^,]+\"", "")
+            assert.has_error(function() wsse:authenticate(partial_test_wsse_header) end)
         end)
 
         it("do not raise error when WSSE header parameters have random casing ", function()
             assert.has_no.errors(function() wsse:authenticate('UsernameToken username="test", PasSwordDigest="ODM3MmJiN2U2OTA2ZDhjMDlkYWExY2ZlNDYxODBjYTFmYTU0Y2I0Mg==", NONCE="4603fcf8f0fb2ea03a41ff007ea70d25", cReAtEd="2018-02-27T09:46:22Z"') end)
+        end)
+
+    end)
+
+    describe("#generate_header", function()
+
+        it("raise error when no argument was given", function()
+            assert.has_error(function() wsse:generate_header() end, "Username and secret are required!")
+        end)
+
+        it("return with a generated wsse header string when username, secret, created, and nonce was given", function()
+            generated_wsse_header = wsse:generate_header('test', 'test', '2018-03-01T09:15:38Z', '44ab5733c8d764bc2712c62f77abeeec')
+            excepted_wsse_header = 'UsernameToken Username="test", PasswordDigest="NTY0MzllMzJlMzM3NTFiNzQ2ZWVkMGEzZDRjNGQwODZiM2U2ZWJlYQ==", Nonce="44ab5733c8d764bc2712c62f77abeeec", Created="2018-03-01T09:15:38Z"'
+            assert.are.equal(excepted_wsse_header, generated_wsse_header)
         end)
 
     end)

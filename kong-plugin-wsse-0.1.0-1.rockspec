@@ -11,7 +11,11 @@ description = {
   license = "UNLICENSED"
 }
 dependencies = {
-  "lua ~> 5.1"
+  "lua ~> 5.1",
+  "lbase64 20120820-1",
+  "sha1 0.5-1",
+  "uuid 0.2-1"
+
 }
 build = {
   type = "builtin",
