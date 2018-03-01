@@ -8,7 +8,7 @@ function KeyDb:find_by_username(username)
     end
 
     if username == "test" then
-        return "secret"
+        return "test"
     else
         error("Username could not be found!")
     end

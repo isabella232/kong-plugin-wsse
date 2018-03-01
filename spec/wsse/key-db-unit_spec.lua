@@ -14,7 +14,7 @@ describe("key db", function()
         end)
 
         it("should return with the correct secret when username exists", function()
-            assert.are.equal('secret', key_db:find_by_username('test'))
+            assert.are.equal('test', key_db:find_by_username('test'))
         end)
     end)
 
