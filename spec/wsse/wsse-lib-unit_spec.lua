@@ -5,7 +5,7 @@ describe("wsse lib", function()
     local wsse = wsse_lib:new()
     local test_wsse_header = wsse:generate_header('test', 'test')
 
-    describe("#check_header", function()
+    describe("#authenticate", function()
 
         it("raise error when WSSE header is an empty string", function()
             assert.has_error(function() wsse:authenticate("") end, "error")
