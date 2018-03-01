@@ -41,13 +41,17 @@ describe("wsse lib", function()
             assert.has_no.errors(function() wsse:authenticate('UsernameToken username="test", PasSwordDigest="ODM3MmJiN2U2OTA2ZDhjMDlkYWExY2ZlNDYxODBjYTFmYTU0Y2I0Mg==", NONCE="4603fcf8f0fb2ea03a41ff007ea70d25", cReAtEd="2018-02-27T09:46:22Z"') end)
         end)
 
+        it("do not raise error when WSSE header parameters have extra spaces ", function()
+            assert.has_no.errors(function() wsse:authenticate('UsernameToken Username ="test", PasswordDigest= "ODM3MmJiN2U2OTA2ZDhjMDlkYWExY2ZlNDYxODBjYTFmYTU0Y2I0Mg==", Nonce = "4603fcf8f0fb2ea03a41ff007ea70d25", Created="2018-02-27T09:46:22Z"') end)
+        end)
+
         it("should raise error when API user could not be found", function ()
             assert.has.errors(function() wsse:authenticate('UsernameToken Username="non existing user", PasswordDigest="ODM3MmJiN2U2OTA2ZDhjMDlkYWExY2ZlNDYxODBjYTFmYTU0Y2I0Mg==", Nonce="4603fcf8f0fb2ea03a41ff007ea70d25", Created="2018-02-27T09:46:22Z"') end)
         end)
 
-        --it("should raise error when ...", function ()
-        --    assert.has.errors(function() wsse:authenticate('UsernameToken Username="test", PasswordDigest="almafa", Nonce="4603fcf8f0fb2ea03a41ff007ea70d25", Created="2018-02-27T09:46:22Z"') end)
-        --end)
+        it("should raise error when wrong secret was given", function ()
+            assert.has.errors(function() wsse:authenticate('UsernameToken Username="test", PasswordDigest="almafa", Nonce="4603fcf8f0fb2ea03a41ff007ea70d25", Created="2018-02-27T09:46:22Z"') end, "Invalid credentials!")
+        end)
 
     end)
 

@@ -37,6 +37,20 @@ local function parse_header(header_string)
     return wsse_params
 end
 
+local function generate_password_digest(nonce, created, secret)
+    return base64.encode(sha1(nonce .. created .. secret))
+end
+
+local function validate_credentials(wsse_params, secret)
+    local nonce = wsse_params['nonce']
+    local created = wsse_params['created']
+    local digest = generate_password_digest(nonce, created, secret)
+
+    if (digest ~= wsse_params['password_digest']) then
+        error('Invalid credentials!')
+    end
+end
+
 function Wsse:new(key_db)
     self.__index = self
     local self = setmetatable({}, self)
@@ -48,7 +62,8 @@ function Wsse:authenticate(header_string)
     local wsse_params = parse_header(header_string)
 
     check_required_params(wsse_params)
-    self.key_db:find_by_username(wsse_params['username'])
+    secret = self.key_db:find_by_username(wsse_params['username'])
+    validate_credentials(wsse_params, secret)
 end
 
 function Wsse:generate_header(username, secret, created, nonce)
@@ -58,7 +73,7 @@ function Wsse:generate_header(username, secret, created, nonce)
 
     created = created or os.date("!%Y-%m-%dT%TZ")
     nonce = nonce or uuid()
-    local digest = base64.encode(sha1(nonce .. created .. secret))
+    local digest = generate_password_digest(nonce,created, secret)
 
     return string.format('UsernameToken Username="%s", PasswordDigest="%s", Nonce="%s", Created="%s"', username, digest, nonce, created)
 end
