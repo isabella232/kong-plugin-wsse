@@ -4,6 +4,7 @@ RUN yum install -y gcc git unzip postgresql
 RUN luarocks install lbase64
 RUN luarocks install sha1
 RUN luarocks install uuid
+RUN luarocks install date
 
 ENV PATH=$PATH:/usr/local/bin:/usr/local/openresty/bin:/opt/stap/bin:/usr/local/stapxx:/usr/local/openresty/nginx/sbin
 
