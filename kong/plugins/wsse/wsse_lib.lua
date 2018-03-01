@@ -37,9 +37,10 @@ local function parse_header(header_string)
     return wsse_params
 end
 
-function Wsse:new()
+function Wsse:new(key_db)
     self.__index = self
     local self = setmetatable({}, self)
+    self.key_db = key_db
     return self
 end
 
@@ -47,6 +48,7 @@ function Wsse:authenticate(header_string)
     local wsse_params = parse_header(header_string)
 
     check_required_params(wsse_params)
+    self.key_db:find_by_username(wsse_params['username'])
 end
 
 function Wsse:generate_header(username, secret, created, nonce)

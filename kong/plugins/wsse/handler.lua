@@ -2,6 +2,7 @@ local BasePlugin = require "kong.plugins.base_plugin"
 local constants = require "kong.constants"
 local responses = require "kong.tools.responses"
 local wsse_lib = require "kong.plugins.wsse.wsse_lib"
+local KeyDb = require "kong.plugins.wsse.key_db"
 
 local WsseHandler = BasePlugin:extend()
 
@@ -17,7 +18,7 @@ function WsseHandler:access(conf)
 
     if (wsse_header_string) then
         ngx.req.set_header(constants.HEADERS.ANONYMOUS, nil)
-        local wsse = wsse_lib:new()
+        local wsse = wsse_lib:new(KeyDb())
         local success, error = pcall(function()
             wsse:authenticate(wsse_header_string)
         end)
