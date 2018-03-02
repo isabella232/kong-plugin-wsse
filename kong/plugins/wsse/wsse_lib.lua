@@ -1,6 +1,7 @@
 local base64 = require "base64"
 local sha1 = require "sha1"
-local uuid = require("uuid")
+local uuid = require "uuid"
+local TimeframeValidator = require "kong.plugins.wsse.timeframe_validator"
 
 local Wsse = {}
 
@@ -54,7 +55,10 @@ end
 function Wsse:new(key_db)
     self.__index = self
     local self = setmetatable({}, self)
+
     self.key_db = key_db
+    self.timeframe_validator = TimeframeValidator()
+
     return self
 end
 
@@ -64,9 +68,10 @@ function Wsse:authenticate(header_string)
     check_required_params(wsse_params)
     secret = self.key_db.find_by_username(wsse_params['username'])
     validate_credentials(wsse_params, secret)
+    self.timeframe_validator:validate(wsse_params.created)
 end
 
-function Wsse:generate_header(username, secret, created, nonce)
+function Wsse.generate_header(username, secret, created, nonce)
     if username == nil or secret == nil then
         error("Username and secret are required!")
     end

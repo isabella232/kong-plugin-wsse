@@ -1,5 +1,6 @@
 local helpers = require "spec.helpers"
 local cjson = require "cjson"
+local Wsse = require "kong.plugins.wsse.wsse_lib"
 
 describe("Plugin: wsse (access)", function()
   local client
@@ -93,6 +94,8 @@ describe("Plugin: wsse (access)", function()
     end)
 
     it("responds with status 200 when wsse header format is valid", function()
+      local header = Wsse.generate_header("test", "test")
+
       assert(admin_client:send {
         method = "POST",
         path = "/consumers/test/wsse_key/",
@@ -110,7 +113,7 @@ describe("Plugin: wsse (access)", function()
         path = "/request",
         headers = {
           ["Host"] = "test1.com",
-          ["X-WSSE"] = 'UsernameToken Username="test", PasswordDigest="ODM3MmJiN2U2OTA2ZDhjMDlkYWExY2ZlNDYxODBjYTFmYTU0Y2I0Mg==", Nonce="4603fcf8f0fb2ea03a41ff007ea70d25", Created="2018-02-27T09:46:22Z"'
+          ["X-WSSE"] = header
         }
       })
 
