@@ -3,7 +3,20 @@ local KeyDb = require "kong.plugins.wsse.key_db"
 
 describe("wsse lib", function()
 
-    local key_db = KeyDb()
+    local key_db = {
+        find_by_username = function(username)
+            if username == nil then
+                error("Username is required!")
+            end
+
+            if username == "test" then
+                return "test"
+            else
+                error("Username could not be found!")
+            end
+         end
+    }
+
     local wsse = wsse_lib:new(key_db)
     local test_wsse_header = wsse:generate_header('test', 'test')
 

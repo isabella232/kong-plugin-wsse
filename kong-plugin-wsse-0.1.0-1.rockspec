@@ -23,5 +23,10 @@ build = {
   modules = {
     ["kong.plugins.wsse.handler"] = "kong/plugins/wsse/handler.lua",
     ["kong.plugins.wsse.schema"] = "kong/plugins/wsse/schema.lua",
+    ["kong.plugins.wsse.daos"] = "kong/plugins/wsse/daos.lua",
+    ["kong.plugins.wsse.api"] = "kong/plugins/wsse/api.lua",
+    ["kong.plugins.wsse.wsse_lib"] = "kong/plugins/wsse/wsse_lib.lua",
+    ["kong.plugins.wsse.key_db"] = "kong/plugins/wsse/key_db.lua",
+    ["kong.plugins.wsse.classic"] = "kong/plugins/wsse/classic.lua",
   }
 }

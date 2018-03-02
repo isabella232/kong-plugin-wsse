@@ -19,6 +19,10 @@ services:
       - KONG_NGINX_DAEMON=off
       - LUA_PATH=/kong-plugins/?.lua;/kong-plugins/?/init.lua;;
       - PGPASSWORD=kong
+      - KONG_ADMIN_ACCESS_LOG='/dev/stdout'
+      - KONG_ADMIN_ERROR_LOG='/dev/stderr'
+      - KONG_PROXY_ACCESS_LOG='/dev/stdout'
+      - KONG_PROXY_ERROR_LOG='/dev/stderr'
     ports:
       - 8000:8000
       - 8001:8001

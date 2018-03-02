@@ -62,7 +62,7 @@ function Wsse:authenticate(header_string)
     local wsse_params = parse_header(header_string)
 
     check_required_params(wsse_params)
-    secret = self.key_db:find_by_username(wsse_params['username'])
+    secret = self.key_db.find_by_username(wsse_params['username'])
     validate_credentials(wsse_params, secret)
 end
 
