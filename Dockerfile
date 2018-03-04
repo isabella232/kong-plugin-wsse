@@ -8,6 +8,9 @@ RUN luarocks install lbase64 20120820-1
 RUN luarocks install sha1 0.5-1
 RUN luarocks install uuid 0.2-1
 
+RUN unlink /etc/localtime
+RUN ln -s /usr/share/zoneinfo/CET /etc/localtime
+
 ENV PATH=$PATH:/usr/local/bin:/usr/local/openresty/bin:/opt/stap/bin:/usr/local/stapxx:/usr/local/openresty/nginx/sbin
 
 RUN git clone https://github.com/Kong/kong
