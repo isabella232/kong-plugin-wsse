@@ -14,7 +14,7 @@ local function is_valid_timestamp_format(timestamp)
 end
 
 local function is_timestamp_in_threshold(timestamp)
-    local current_date_time = os.date('%Y-%m-%dT%H:%M:%SZ')
+    local current_date_time = date(true)
     local given_timestamp = date(timestamp)
     local difference = math.abs(date.diff(given_timestamp, current_date_time):spanseconds())
 

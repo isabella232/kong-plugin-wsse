@@ -12,15 +12,15 @@ describe("wsse timeframe validator", function()
         end)
 
         local formats = {
-            date(true):fmt('%Y-%m-%dT%H:%M:%S%z'),
+            date(false):fmt('%Y-%m-%dT%H:%M:%S%z'),
             date(true):fmt('%Y-%m-%dT%H:%M:%SZ'),
             date(true):fmt('%Y-%m-%dT%H:%M:%\fZ'),
             date(true):addhours(2):fmt('%Y-%m-%dT%H:%M:%S+02:00'),
             date(true):addhours(-2):fmt('%Y-%m-%dT%H:%M:%S-02:00'),
         }
 
-        for _, format in ipairs(formats) do
-            it("should not raise error when timestamp string is in valid format", function()
+        for i, format in ipairs(formats) do
+            it("should not raise error for format #" .. i .. " (" .. format .. ")", function()
                 assert.has_no.errors(function() timeframe_validator:validate(format) end)
             end)
         end
