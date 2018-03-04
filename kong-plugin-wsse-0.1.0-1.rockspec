@@ -12,11 +12,11 @@ description = {
 }
 dependencies = {
   "lua ~> 5.1",
+  "date 2.1.2-1",
+  "inspect 3.1.1-0"
   "lbase64 20120820-1",
   "sha1 0.5-1",
-  "uuid 0.2-1",
-  "date 2.1.2-1"
-
+  "uuid 0.2-1"
 }
 build = {
   type = "builtin",

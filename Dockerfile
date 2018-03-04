@@ -1,10 +1,12 @@
 FROM kong:0.12.1
 
 RUN yum install -y gcc git unzip postgresql
-RUN luarocks install lbase64
-RUN luarocks install sha1
-RUN luarocks install uuid
-RUN luarocks install date
+
+RUN luarocks install date 2.1.2-1
+RUN luarocks install inspect 3.1.1-0
+RUN luarocks install lbase64 20120820-1
+RUN luarocks install sha1 0.5-1
+RUN luarocks install uuid 0.2-1
 
 ENV PATH=$PATH:/usr/local/bin:/usr/local/openresty/bin:/opt/stap/bin:/usr/local/stapxx:/usr/local/openresty/nginx/sbin
 
