@@ -7,6 +7,8 @@ services:
     depends_on:
       kong-database:
         condition: service_healthy
+    env_file:
+      - ./env
     environment:
       - KONG_DATABASE=postgres
       - KONG_PG_HOST=kong-database
