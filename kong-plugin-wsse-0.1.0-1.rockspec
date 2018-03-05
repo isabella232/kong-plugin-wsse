@@ -11,7 +11,7 @@ description = {
   license = "UNLICENSED"
 }
 dependencies = {
-  "lua ~> 5.1",
+  "lua >= 5.1",
   "date 2.1.2-1",
   "inspect 3.1.1-0",
   "lbase64 20120820-1",
