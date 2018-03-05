@@ -1,9 +1,9 @@
 package = "kong-plugin-wsse"
-version = "0.1.0-1"
+version = "0.2.0-1"
 supported_platforms = {"linux", "macosx"}
 source = {
   url = "git+https://github.com/emartech/kong-plugin-wsse.git",
-  tag = "0.1.0"
+  tag = "0.2.0"
 }
 description = {
   summary = "WSSE auth plugin for Kong API gateway.",
@@ -27,6 +27,7 @@ build = {
     ["kong.plugins.wsse.api"] = "kong/plugins/wsse/api.lua",
     ["kong.plugins.wsse.wsse_lib"] = "kong/plugins/wsse/wsse_lib.lua",
     ["kong.plugins.wsse.key_db"] = "kong/plugins/wsse/key_db.lua",
-    ["kong.plugins.wsse.classic"] = "kong/plugins/wsse/classic.lua"
+    ["kong.plugins.wsse.classic"] = "kong/plugins/wsse/classic.lua",
+    ["kong.plugins.wsse.timeframe_validator"] = "kong/plugins/wsse/timeframe_validator.lua"
   }
 }
