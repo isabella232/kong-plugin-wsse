@@ -1,6 +1,6 @@
 FROM kong:0.12.1
 
-RUN yum install -y gcc git unzip postgresql
+RUN yum install -y gcc git zip unzip postgresql
 
 RUN luarocks install date 2.1.2-1
 RUN luarocks install inspect 3.1.1-0
