@@ -18,7 +18,7 @@ function WsseHandler:access(conf)
 
     if (wsse_header_string) then
         ngx.req.set_header(constants.HEADERS.ANONYMOUS, nil)
-        local wsse = wsse_lib:new(KeyDb())
+        local wsse = wsse_lib:new(KeyDb(), conf.timeframe_validation_treshhold_in_minutes)
         local success, error = pcall(function()
             wsse:authenticate(wsse_header_string)
         end)

@@ -52,12 +52,13 @@ local function validate_credentials(wsse_params, secret)
     end
 end
 
-function Wsse:new(key_db)
+function Wsse:new(key_db, timeframe_validation_treshhold_in_minutes)
     self.__index = self
     local self = setmetatable({}, self)
+    local timeframe_validation_treshhold_in_seconds = timeframe_validation_treshhold_in_minutes * 60 or 300
 
     self.key_db = key_db
-    self.timeframe_validator = TimeframeValidator()
+    self.timeframe_validator = TimeframeValidator(timeframe_validation_treshhold_in_seconds)
 
     return self
 end
