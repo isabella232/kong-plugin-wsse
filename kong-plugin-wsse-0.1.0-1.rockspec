@@ -13,7 +13,7 @@ description = {
 dependencies = {
   "lua ~> 5.1",
   "date 2.1.2-1",
-  "inspect 3.1.1-0"
+  "inspect 3.1.1-0",
   "lbase64 20120820-1",
   "sha1 0.5-1",
   "uuid 0.2-1"
@@ -27,6 +27,6 @@ build = {
     ["kong.plugins.wsse.api"] = "kong/plugins/wsse/api.lua",
     ["kong.plugins.wsse.wsse_lib"] = "kong/plugins/wsse/wsse_lib.lua",
     ["kong.plugins.wsse.key_db"] = "kong/plugins/wsse/key_db.lua",
-    ["kong.plugins.wsse.classic"] = "kong/plugins/wsse/classic.lua",
+    ["kong.plugins.wsse.classic"] = "kong/plugins/wsse/classic.lua"
   }
 }
