@@ -1,9 +1,9 @@
 package = "kong-plugin-wsse"
-version = "0.3.0-1"
+version = "0.3.1-1"
 supported_platforms = {"linux", "macosx"}
 source = {
   url = "git+https://github.com/emartech/kong-plugin-wsse.git",
-  tag = "0.3.0"
+  tag = "0.3.1"
 }
 description = {
   summary = "WSSE auth plugin for Kong API gateway.",
@@ -29,7 +29,7 @@ build = {
     ["kong.plugins.wsse.key_db"] = "kong/plugins/wsse/key_db.lua",
     ["kong.plugins.wsse.classic"] = "kong/plugins/wsse/classic.lua",
     ["kong.plugins.wsse.timeframe_validator"] = "kong/plugins/wsse/timeframe_validator.lua",
-    ["kong.plugins.wsse.migrations.cassandra"] = "/path/to/schema/migrations/cassandra.lua",
-    ["kong.plugins.wsse.migrations.postgres"] = "/path/to/schema/migrations/postgres.lua"
+    ["kong.plugins.wsse.migrations.cassandra"] = "kong/plugins/wsse/migrations/cassandra.lua",
+    ["kong.plugins.wsse.migrations.postgres"] = "kong/plugins/wsse/migrations/postgres.lua"
   }
 }
