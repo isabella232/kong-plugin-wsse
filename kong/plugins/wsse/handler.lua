@@ -19,15 +19,15 @@ function WsseHandler:access(conf)
     if (wsse_header_string) then
         ngx.req.set_header(constants.HEADERS.ANONYMOUS, nil)
         local wsse = wsse_lib:new(KeyDb(), conf.timeframe_validation_treshhold_in_minutes)
-        local success, error = pcall(function()
+        local success, err = pcall(function()
             wsse:authenticate(wsse_header_string)
         end)
 
         if not success then
-            return responses.send(401, error)
+            return responses.send(401, err.msg)
         end
     elseif (conf.anonymous == nil) then
-        return responses.send(401, "WSSE header not found!")
+        return responses.send(401, "WSSE authentication header not found!")
     else
         ngx.req.set_header(constants.HEADERS.ANONYMOUS, true)
     end

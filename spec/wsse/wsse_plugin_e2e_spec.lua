@@ -77,7 +77,8 @@ describe("Plugin: wsse (access)", function()
         }
       })
 
-      assert.res_status(401, res)
+      local body = assert.res_status(401, res)
+      assert.is_equal('{"message":"WSSE authentication header not found!"}', body)
     end)
 
     it("responds with status 401 when wsse header format is invalid", function()
@@ -90,7 +91,8 @@ describe("Plugin: wsse (access)", function()
         }
       })
 
-      assert.res_status(401, res)
+      local body = assert.res_status(401, res)
+      assert.is_equal('{"message":"Username is missing from WSSE authenticaion header!"}', body)
     end)
 
     it("responds with status 200 when wsse header format is valid", function()
