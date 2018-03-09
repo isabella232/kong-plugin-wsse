@@ -40,11 +40,11 @@ end
 
 function TimeframeValidator:validate(timestamp)
     if not is_valid_timestamp_format(timestamp) then
-        error({msg = "Time frame is invalid!"})
+        error({msg = "Timeframe is invalid."})
     end
 
     if (is_timestamp_within_threshold(timestamp, self.threshold_in_seconds)) then
-        error({msg = "Time frame is invalid!"})
+        error({msg = "Timeframe is invalid."})
     end
 
     return true

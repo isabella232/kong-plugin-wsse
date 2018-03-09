@@ -92,7 +92,7 @@ describe("Plugin: wsse (access)", function()
       })
 
       local body = assert.res_status(401, res)
-      assert.is_equal('{"message":"Username is missing from WSSE authenticaion header!"}', body)
+      assert.is_equal('{"message":"The Username field is missing from WSSE authenticaion header."}', body)
     end)
 
     it("responds with status 200 when wsse header format is valid", function()

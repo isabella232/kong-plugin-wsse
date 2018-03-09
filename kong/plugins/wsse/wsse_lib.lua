@@ -7,16 +7,16 @@ local Wsse = {}
 
 local function check_required_params(wsse_params)
     if wsse_params["username"] == nil then
-        error({msg = "Username is missing from WSSE authenticaion header!"})
+        error({msg = "The Username field is missing from WSSE authenticaion header."})
     end
     if wsse_params["password_digest"] == nil then
-        error({msg = "PasswordDigest is missing from WSSE authenticaion header!"})
+        error({msg = "The PasswordDigest field is missing from WSSE authenticaion header."})
     end
     if wsse_params["nonce"] == nil then
-        error({msg = "Nonce is missing from WSSE authenticaion header!"})
+        error({msg = "The Nonce field is missing from WSSE authenticaion header."})
     end
     if wsse_params["created"] == nil then
-        error({msg = "Created is missing from WSSE authenticaion header!"})
+        error({msg = "The Created field is missing from WSSE authenticaion header."})
     end
 end
 
@@ -30,7 +30,7 @@ end
 
 local function parse_header(header_string)
     if (header_string == "") then
-        error({msg = "WSSE authenticaion header is empty!"})
+        error({msg = "WSSE authenticaion header is empty."})
     end
 
     local wsse_params = {
@@ -53,7 +53,7 @@ local function validate_credentials(wsse_params, secret)
     local digest = generate_password_digest(nonce, created, secret)
 
     if (digest ~= wsse_params['password_digest']) then
-        error({msg = "Credentials are invalid!"})
+        error({msg = "Credentials are invalid."})
     end
 end
 
@@ -75,7 +75,7 @@ function Wsse:authenticate(header_string)
     check_required_params(wsse_params)
     local status, err = pcall(function() secret = self.key_db.find_by_username(wsse_params['username']) end)
     if not status then
-        error({msg = "Credentials are invalid!"})
+        error({msg = "Credentials are invalid."})
     end
     validate_credentials(wsse_params, secret)
     self.timeframe_validator:validate(wsse_params.created)
@@ -83,7 +83,7 @@ end
 
 function Wsse.generate_header(username, secret, created, nonce)
     if username == nil or secret == nil then
-        error({msg = "Username and secret are required!"})
+        error({msg = "Username and secret are required."})
     end
 
     created = created or os.date("!%Y-%m-%dT%TZ")

@@ -5,13 +5,13 @@ describe("wsse lib", function()
     local key_db = {
         find_by_username = function(username)
             if username == nil then
-                error({msg = "Username is required!"})
+                error({msg = "Username is required."})
             end
 
             if username == "test" then
                 return "test"
             else
-                error({msg = "WSSE key could not be found!"})
+                error({msg = "WSSE key could not be found."})
             end
          end
     }
@@ -22,7 +22,7 @@ describe("wsse lib", function()
     describe("#authenticate", function()
 
         it("raises error when WSSE header is an empty string", function()
-            assert.has_error(function() wsse:authenticate("") end, {msg = "WSSE authenticaion header is empty!"})
+            assert.has_error(function() wsse:authenticate("") end, {msg = "WSSE authenticaion header is empty."})
         end)
 
         it("does not raise error when WSSE header is a valid wsse header string", function()
@@ -31,22 +31,22 @@ describe("wsse lib", function()
 
         it("raises error when PasswordDigest is missing from WSSE header", function()
             partial_test_wsse_header = string.gsub(test_wsse_header, "PasswordDigest=\"[^,]+\",", "")
-            assert.has_error(function() wsse:authenticate(partial_test_wsse_header) end, {msg = "PasswordDigest is missing from WSSE authenticaion header!"})
+            assert.has_error(function() wsse:authenticate(partial_test_wsse_header) end, {msg = "The PasswordDigest field is missing from WSSE authenticaion header."})
         end)
 
         it("raises error when Username is missing from WSSE header", function()
             partial_test_wsse_header = string.gsub(test_wsse_header, "Username=\"[^,]+\",", "")
-            assert.has_error(function() wsse:authenticate(partial_test_wsse_header) end, {msg = "Username is missing from WSSE authenticaion header!"})
+            assert.has_error(function() wsse:authenticate(partial_test_wsse_header) end, {msg = "The Username field is missing from WSSE authenticaion header."})
         end)
 
         it("raises error when Nonce is missing from WSSE header", function()
             partial_test_wsse_header = string.gsub(test_wsse_header, "Nonce=\"[^,]+\",", "")
-            assert.has_error(function() wsse:authenticate(partial_test_wsse_header) end, {msg = "Nonce is missing from WSSE authenticaion header!"})
+            assert.has_error(function() wsse:authenticate(partial_test_wsse_header) end, {msg = "The Nonce field is missing from WSSE authenticaion header."})
         end)
 
         it("raises error when Created is missing from WSSE header", function()
             partial_test_wsse_header = string.gsub(test_wsse_header, "Created=\"[^,]+\"", "")
-            assert.has_error(function() wsse:authenticate(partial_test_wsse_header) end, {msg = "Created is missing from WSSE authenticaion header!"})
+            assert.has_error(function() wsse:authenticate(partial_test_wsse_header) end, {msg = "The Created field is missing from WSSE authenticaion header."})
         end)
 
         it("does not raise error when WSSE header parameters have random casing ", function()
@@ -72,15 +72,15 @@ describe("wsse lib", function()
         end)
 
         it("should raise error when API user could not be found", function ()
-            assert.has.errors(function() wsse:authenticate('UsernameToken Username="non existing user", PasswordDigest="ODM3MmJiN2U2OTA2ZDhjMDlkYWExY2ZlNDYxODBjYTFmYTU0Y2I0Mg==", Nonce="4603fcf8f0fb2ea03a41ff007ea70d25", Created="2018-02-27T09:46:22Z"') end, {msg = "Credentials are invalid!"})
+            assert.has.errors(function() wsse:authenticate('UsernameToken Username="non existing user", PasswordDigest="ODM3MmJiN2U2OTA2ZDhjMDlkYWExY2ZlNDYxODBjYTFmYTU0Y2I0Mg==", Nonce="4603fcf8f0fb2ea03a41ff007ea70d25", Created="2018-02-27T09:46:22Z"') end, {msg = "Credentials are invalid."})
         end)
 
         it("should raise error when wrong secret was given", function ()
-            assert.has.errors(function() wsse:authenticate('UsernameToken Username="test", PasswordDigest="almafa", Nonce="4603fcf8f0fb2ea03a41ff007ea70d25", Created="2018-02-27T09:46:22Z"') end, {msg = "Credentials are invalid!"})
+            assert.has.errors(function() wsse:authenticate('UsernameToken Username="test", PasswordDigest="almafa", Nonce="4603fcf8f0fb2ea03a41ff007ea70d25", Created="2018-02-27T09:46:22Z"') end, {msg = "Credentials are invalid."})
         end)
 
         it("should raise error when timeframe is invalid", function ()
-            assert.has.errors(function() wsse:authenticate('UsernameToken Username="test", PasswordDigest="ODM3MmJiN2U2OTA2ZDhjMDlkYWExY2ZlNDYxODBjYTFmYTU0Y2I0Mg==", Nonce="4603fcf8f0fb2ea03a41ff007ea70d25", Created="2018-02-27T09:46:22Z"') end, {msg = "Time frame is invalid!"})
+            assert.has.errors(function() wsse:authenticate('UsernameToken Username="test", PasswordDigest="ODM3MmJiN2U2OTA2ZDhjMDlkYWExY2ZlNDYxODBjYTFmYTU0Y2I0Mg==", Nonce="4603fcf8f0fb2ea03a41ff007ea70d25", Created="2018-02-27T09:46:22Z"') end, {msg = "Timeframe is invalid."})
         end)
 
     end)
@@ -88,7 +88,7 @@ describe("wsse lib", function()
     describe("#generate_header", function()
 
         it("raises error when no argument was given", function()
-            assert.has_error(function() wsse_lib.generate_header() end, {msg = "Username and secret are required!"})
+            assert.has_error(function() wsse_lib.generate_header() end, {msg = "Username and secret are required."})
         end)
 
         it("returns with a generated wsse header string when username, secret, created, and nonce was given", function()
