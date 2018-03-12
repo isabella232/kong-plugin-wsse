@@ -6,19 +6,17 @@ help: ##                 Show this help
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/\(.*\):.*##[ \t]*/    \1 ## /' | sort | column -t -s '##'
 
 up: ##                 Start containers
-	docker-compose up
+	docker-compose up -d
 
 down: ##                 Stops containers
 	docker-compose down
 
-restart: ##                 Restart containers
-	make down make up
+restart: down up ##                 Restart containers
 
 clear-db:    ##                 Clears local db
 	bash -c "rm -rf .docker"
 
-complete-restart: ##                 Clear DB and restart containers
-	make clear-db && make down && make up
+complete-restart: clear-db down up ##                 Clear DB and restart containers
 
 publish: ##                 Build and publish plugin to luarocks
 	docker-compose run kong bash -c "cd /kong-plugins && chmod +x publish.sh && ./publish.sh"
