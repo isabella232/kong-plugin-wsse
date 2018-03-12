@@ -6,7 +6,7 @@ local KeyDb = require "kong.plugins.wsse.key_db"
 
 local WsseHandler = BasePlugin:extend()
 
-WsseHandler.PRIORITY = 2000
+WsseHandler.PRIORITY = 1006
 
 function WsseHandler:new()
     WsseHandler.super.new(self, "wsse")
