@@ -70,15 +70,20 @@ end
 
 function Wsse:authenticate(header_string)
     local secret
+    local strict_timeframe_validation
     local wsse_params = parse_header(header_string)
 
     check_required_params(wsse_params)
-    local status, err = pcall(function() secret = self.key_db.find_by_username(wsse_params['username']) end)
+    local status, err = pcall(function()
+        local wsse_key = self.key_db.find_by_username(wsse_params['username'])
+        strict_timeframe_validation = wsse_key['strict_timeframe_validation']
+        secret = wsse_key['secret']
+    end)
     if not status then
         error({msg = "Credentials are invalid."})
     end
     validate_credentials(wsse_params, secret)
-    self.timeframe_validator:validate(wsse_params.created)
+    self.timeframe_validator:validate(wsse_params.created, strict_timeframe_validation)
 end
 
 function Wsse.generate_header(username, secret, created, nonce)

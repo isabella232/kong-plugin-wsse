@@ -13,7 +13,7 @@ function KeyDb.find_by_username(username)
         error({msg = "WSSE key cn not be found."})
     end
 
-    return rows[1]['secret']
+    return rows[1]
 end
 
 return KeyDb

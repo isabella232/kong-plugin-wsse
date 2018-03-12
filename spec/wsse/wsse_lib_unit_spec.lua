@@ -9,7 +9,15 @@ describe("wsse lib", function()
             end
 
             if username == "test" then
-                return "test"
+                return {
+                    secret = "test",
+                    strict_timeframe_validation = true
+                }
+            elseif username == "test2" then
+                return {
+                    secret = "test2",
+                    strict_timeframe_validation = false
+                }
             else
                 error({msg = "WSSE key could not be found."})
             end
@@ -79,8 +87,13 @@ describe("wsse lib", function()
             assert.has.errors(function() wsse:authenticate('UsernameToken Username="test", PasswordDigest="almafa", Nonce="4603fcf8f0fb2ea03a41ff007ea70d25", Created="2018-02-27T09:46:22Z"') end, {msg = "Credentials are invalid."})
         end)
 
-        it("should raise error when timeframe is invalid", function ()
+        it("should raise error when timeframe is invalid and strict_timeframe_validation is true", function ()
             assert.has.errors(function() wsse:authenticate('UsernameToken Username="test", PasswordDigest="ODM3MmJiN2U2OTA2ZDhjMDlkYWExY2ZlNDYxODBjYTFmYTU0Y2I0Mg==", Nonce="4603fcf8f0fb2ea03a41ff007ea70d25", Created="2018-02-27T09:46:22Z"') end, {msg = "Timeframe is invalid."})
+        end)
+
+        it("should not raise error when timeframe is invalid and strict_timeframe_validation is false", function ()
+            local test_wsse_header_non_strict = wsse_lib.generate_header('test2', 'test2', '2018-02-27T09:46:22Z')
+            assert.has_no.errors(function() wsse:authenticate(test_wsse_header_non_strict) end)
         end)
 
     end)
