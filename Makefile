@@ -12,7 +12,13 @@ down: ##                 Stops containers
 	docker-compose down
 
 restart: ##                 Restart containers
-	down up
+	make down make up
+
+clear-db:    ##                 Clears local db
+	bash -c "rm -rf .docker"
+
+complete-restart: ##                 Clear DB and restart containers
+	make clear-db && make down && make up
 
 publish: ##                 Build and publish plugin to luarocks
 	docker-compose run kong bash -c "cd /kong-plugins && chmod +x publish.sh && ./publish.sh"
@@ -26,8 +32,5 @@ test-env:    ##                 Creates API (testapi) and consumer (TestUser)
 	bash -c "curl -i -X POST --url http://localhost:8001/consumers/ --data 'username=TestUser'"
 	bash -c "curl -i -X POST --url http://localhost:8001/consumers/TestUser/wsse_key/ --data 'key=test_user001&secret=53cr37p455w0rd'"
 
-clear-db:    ##                 Clears local db
-	bash -c "rm -rf .docker"
-
-ping-kong:    ##                 Pings kong on localhost:8000
+ping:    ##                 Pings kong on localhost:8000
 	bash -c "curl -i http://localhost:8000"
