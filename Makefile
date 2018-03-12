@@ -16,7 +16,10 @@ restart: down up ##                 Restart containers
 clear-db:    ##                 Clears local db
 	bash -c "rm -rf .docker"
 
-complete-restart: clear-db down up ##                 Clear DB and restart containers
+build: ## Rebuild containers
+	docker-compose build --no-cache
+
+complete-restart: clear-db down up    ##                 Clear DB and restart containers
 
 publish: ##                 Build and publish plugin to luarocks
 	docker-compose run kong bash -c "cd /kong-plugins && chmod +x publish.sh && ./publish.sh"
