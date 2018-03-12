@@ -1,5 +1,5 @@
 local singletons = require "kong.singletons"
-local Object = require("kong.plugins.wsse.classic")
+local Object = require("classic")
 
 local KeyDb = Object:extend()
 

@@ -1,4 +1,4 @@
-local Object = require("kong.plugins.wsse.classic")
+local Object = require("classic")
 local date = require "date"
 
 local TimeframeValidator = Object:extend()

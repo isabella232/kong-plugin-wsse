@@ -7,6 +7,7 @@ RUN luarocks install inspect 3.1.1-0
 RUN luarocks install lbase64 20120820-1
 RUN luarocks install sha1 0.5-1
 RUN luarocks install uuid 0.2-1
+RUN luarocks install classic
 
 RUN unlink /etc/localtime
 RUN ln -s /usr/share/zoneinfo/CET /etc/localtime
