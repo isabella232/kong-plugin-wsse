@@ -3,7 +3,6 @@ version: '2.1'
 services:
   kong:
     build: .
-#    image: emarsys/kong-dev-docker:c41a148f4f32051c987f865b782e042d18a4ea50
     depends_on:
       kong-database:
         condition: service_healthy
@@ -39,7 +38,7 @@ services:
     command: bash -c "/kong/bin/kong migrations up && /kong/bin/kong start -v"
 
   kong-database:
-    image: postgres:9.5
+    image: postgres:9.6
     environment:
       - POSTGRES_USER=kong
       - POSTGRES_DB=kong
@@ -51,4 +50,3 @@ services:
       retries: 5
     volumes:
       - ./.docker/postgres-data:/var/lib/postgresql/data:rw
-
