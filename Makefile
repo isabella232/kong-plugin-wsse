@@ -35,3 +35,6 @@ test-env:    ##                 Creates API (testapi) and consumer (TestUser)
 
 ping:    ##                 Pings kong on localhost:8000
 	bash -c "curl -i http://localhost:8000"
+
+ssh:    ##                 Pings kong on localhost:8000
+	docker-compose run kong bash
