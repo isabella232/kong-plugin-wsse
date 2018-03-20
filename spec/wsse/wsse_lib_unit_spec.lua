@@ -1,6 +1,14 @@
 local wsse_lib = require "kong.plugins.wsse.wsse_lib"
+local Logger = require "kong.plugins.wsse.logger"
+
 
 describe("wsse lib", function()
+
+    Logger.getInstance = function()
+        return {
+            logWarning = function() end
+        }
+    end
 
     local key_db = {
         find_by_username = function(username)
