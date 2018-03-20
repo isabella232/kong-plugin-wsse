@@ -24,7 +24,10 @@ describe("wsse plugin", function()
       header = {},
       log = function(...) end,
       say = function(...) end,
-      exit = function(...) end
+      exit = function(...) end,
+      var = {
+        request_id = 123
+      }
     }
 
     _G.ngx = stubbed_ngx
