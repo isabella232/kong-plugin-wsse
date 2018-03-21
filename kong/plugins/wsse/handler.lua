@@ -17,26 +17,35 @@ function WsseHandler:access(conf)
     WsseHandler.super.access(self)
     local wsse_header_string = ngx.req.get_headers()["X-WSSE"]
 
-    if (wsse_header_string) then
-        ngx.req.set_header(constants.HEADERS.ANONYMOUS, nil)
-        local wsse = wsse_lib:new(KeyDb(), conf.timeframe_validation_treshhold_in_minutes)
-        local success, err = pcall(function()
-            wsse:authenticate(wsse_header_string)
-        end)
+    local success, err = pcall(function()
+        if (wsse_header_string) then
+            ngx.req.set_header(constants.HEADERS.ANONYMOUS, nil)
+            local wsse = wsse_lib:new(KeyDb(), conf.timeframe_validation_treshhold_in_minutes)
+            local success, err = pcall(function()
+                wsse:authenticate(wsse_header_string)
+            end)
 
-        if not success then
-            Logger.getInstance(ngx):logInfo({status = 401, msg = err.msg})
-            return responses.send(401, err.msg)
+            if not success then
+                Logger.getInstance(ngx):logInfo({status = 401, msg = err.msg})
+                return responses.send(401, err.msg)
+            else
+                Logger.getInstance(ngx):logInfo({msg = "WSSE authentication was successful."})
+            end
+        elseif (conf.anonymous == nil) then
+            local error_message = "WSSE authentication header not found!"
+            Logger.getInstance(ngx):logInfo({status = 401, msg = error_message})
+            return responses.send(401, error_message)
         else
-            Logger.getInstance(ngx):logInfo({msg = "WSSE authentication was successful."})
+            ngx.req.set_header(constants.HEADERS.ANONYMOUS, true)
+            Logger.getInstance(ngx):logInfo({msg = "WSSE authentication skipped."})
         end
-    elseif (conf.anonymous == nil) then
-        local error_message = "WSSE authentication header not found!"
-        Logger.getInstance(ngx):logInfo({status = 401, msg = error_message})
-        return responses.send(401, error_message)
-    else
-        ngx.req.set_header(constants.HEADERS.ANONYMOUS, true)
-        Logger.getInstance(ngx):logInfo({msg = "WSSE authentication skipped."})
+    end)
+
+    if not success then
+        Logger.getInstance(ngx).logError({
+            msg = err.msg
+        })
+        return responses.send(500, "Unexpected error occurred.")
     end
 end
 
