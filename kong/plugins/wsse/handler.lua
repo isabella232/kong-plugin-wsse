@@ -25,14 +25,14 @@ function WsseHandler:access(conf)
         end)
 
         if not success then
-            Logger.getInstance(ngx):logInfo({status = 401, message = err.msg})
+            Logger.getInstance(ngx):logInfo({status = 401, msg = err.msg})
             return responses.send(401, err.msg)
         else
-            Logger.getInstance(ngx):logInfo({status = 200, message = "WSSE authentication was successful."})
+            Logger.getInstance(ngx):logInfo({msg = "WSSE authentication was successful."})
         end
     elseif (conf.anonymous == nil) then
         local error_message = "WSSE authentication header not found!"
-        Logger.getInstance(ngx):logInfo({status = 401, message = error_message})
+        Logger.getInstance(ngx):logInfo({status = 401, msg = error_message})
         return responses.send(401, error_message)
     else
         ngx.req.set_header(constants.HEADERS.ANONYMOUS, true)

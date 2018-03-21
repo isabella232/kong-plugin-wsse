@@ -8,19 +8,19 @@ local Wsse = {}
 
 local function check_required_params(wsse_params)
     if wsse_params["username"] == nil then
-        Logger.getInstance(ngx):logWarning({message = "The Username field is missing from WSSE authenticaion header."})
+        Logger.getInstance(ngx):logWarning({msg = "The Username field is missing from WSSE authenticaion header."})
         error({msg = "The Username field is missing from WSSE authenticaion header."})
     end
     if wsse_params["password_digest"] == nil then
-        Logger.getInstance(ngx):logWarning({message = "The PasswordDigest field is missing from WSSE authenticaion header."})
+        Logger.getInstance(ngx):logWarning({msg = "The PasswordDigest field is missing from WSSE authenticaion header."})
         error({msg = "The PasswordDigest field is missing from WSSE authenticaion header."})
     end
     if wsse_params["nonce"] == nil then
-        Logger.getInstance(ngx):logWarning({message = "The Nonce field is missing from WSSE authenticaion header."})
+        Logger.getInstance(ngx):logWarning({msg = "The Nonce field is missing from WSSE authenticaion header."})
         error({msg = "The Nonce field is missing from WSSE authenticaion header."})
     end
     if wsse_params["created"] == nil then
-        Logger.getInstance(ngx):logWarning({message = "The Created field is missing from WSSE authenticaion header."})
+        Logger.getInstance(ngx):logWarning({msg = "The Created field is missing from WSSE authenticaion header."})
         error({msg = "The Created field is missing from WSSE authenticaion header."})
     end
 end
@@ -35,7 +35,7 @@ end
 
 local function parse_header(header_string)
     if (header_string == "") then
-        Logger.getInstance(ngx):logWarning({message = "WSSE authenticaion header is empty."})
+        Logger.getInstance(ngx):logWarning({msg = "WSSE authenticaion header is empty."})
         error({msg = "WSSE authenticaion header is empty."})
     end
 
@@ -59,7 +59,7 @@ local function validate_credentials(wsse_params, secret)
     local digest = generate_password_digest(nonce, created, secret)
 
     if (digest ~= wsse_params['password_digest']) then
-        Logger.getInstance(ngx):logWarning({message = "Credentials are invalid."})
+        Logger.getInstance(ngx):logWarning({msg = "Credentials are invalid."})
         error({msg = "Credentials are invalid."})
     end
 end
@@ -87,7 +87,7 @@ function Wsse:authenticate(header_string)
         secret = wsse_key['secret']
     end)
     if not status then
-        Logger.getInstance(ngx):logWarning({message = "Credentials are invalid."})
+        Logger.getInstance(ngx):logWarning({msg = "Credentials are invalid."})
         error({msg = "Credentials are invalid."})
     end
     validate_credentials(wsse_params, secret)
@@ -96,7 +96,7 @@ end
 
 function Wsse.generate_header(username, secret, created, nonce)
     if username == nil or secret == nil then
-        Logger.getInstance(ngx):logWarning({message = "Credentials are invalid."})
+        Logger.getInstance(ngx):logWarning({msg = "Credentials are invalid."})
         error({msg = "Username and secret are required."})
     end
 
