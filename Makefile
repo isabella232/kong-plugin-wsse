@@ -26,6 +26,7 @@ publish: ##                 Build and publish plugin to luarocks
 
 test:    ##                 Run tests
 	docker-compose run kong bash -c "cd /kong && bin/busted /kong-plugins/spec"
+	docker-compose down
 
 test-env:    ##                 Creates API (testapi) and consumer (TestUser)
 	bash -c "curl -i -X POST --url http://localhost:8001/apis/ --data 'name=testapi' --data 'upstream_url=http://mockbin.org/request' --data 'uris=/'"
