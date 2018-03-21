@@ -11,7 +11,12 @@ function KeyDb.find_by_username(username)
     end
 
     local rows, err = singletons.dao.wsse_keys:find_all {key = username}
-    if err or rows[1] == nil then
+    if err then
+        Logger.getInstance(ngx):logError(err)
+        error({msg = "WSSE key can not be found."})
+    end
+
+    if rows[1] == nil then
         Logger.getInstance(ngx):logWarning({msg = "WSSE key can not be found."})
         error({msg = "WSSE key can not be found."})
     end
