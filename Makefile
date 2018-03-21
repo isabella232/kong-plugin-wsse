@@ -28,7 +28,7 @@ test:    ##                 Run tests
 	docker-compose run kong bash -c "cd /kong && bin/busted /kong-plugins/spec"
 	docker-compose down
 
-test-env:    ##                 Creates API (testapi) and consumer (TestUser)
+dev-env:    ##                 Creates API (testapi) and consumer (TestUser)
 	bash -c "curl -i -X POST --url http://localhost:8001/apis/ --data 'name=testapi' --data 'upstream_url=http://mockbin.org/request' --data 'uris=/'"
 	bash -c "curl -i -X POST --url http://localhost:8001/apis/testapi/plugins/ --data 'name=wsse'"
 	bash -c "curl -i -X POST --url http://localhost:8001/consumers/ --data 'username=TestUser'"
