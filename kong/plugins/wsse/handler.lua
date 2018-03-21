@@ -36,6 +36,7 @@ function WsseHandler:access(conf)
         return responses.send(401, error_message)
     else
         ngx.req.set_header(constants.HEADERS.ANONYMOUS, true)
+        Logger.getInstance(ngx):logInfo({msg = "WSSE authentication skipped."})
     end
 end
 
