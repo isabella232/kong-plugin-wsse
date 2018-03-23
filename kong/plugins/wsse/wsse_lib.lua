@@ -76,13 +76,14 @@ function Wsse:new(key_db, timeframe_validation_treshhold_in_minutes)
 end
 
 function Wsse:authenticate(header_string)
+    local wsse_key
     local secret
     local strict_timeframe_validation
     local wsse_params = parse_header(header_string)
 
     check_required_params(wsse_params)
     local status, err = pcall(function()
-        local wsse_key = self.key_db.find_by_username(wsse_params['username'])
+        wsse_key = self.key_db.find_by_username(wsse_params['username'])
         strict_timeframe_validation = wsse_key['strict_timeframe_validation']
         secret = wsse_key['secret']
     end)
@@ -92,6 +93,8 @@ function Wsse:authenticate(header_string)
     end
     validate_credentials(wsse_params, secret)
     self.timeframe_validator:validate(wsse_params.created, strict_timeframe_validation)
+
+    return wsse_key
 end
 
 function Wsse.generate_header(username, secret, created, nonce)

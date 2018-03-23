@@ -18,6 +18,9 @@ describe("wsse lib", function()
 
             if username == "test" then
                 return {
+                    id = 1,
+                    consumer_id = 1,
+                    key = "test",
                     secret = "test",
                     strict_timeframe_validation = true
                 }
@@ -102,6 +105,18 @@ describe("wsse lib", function()
         it("should not raise error when timeframe is invalid and strict_timeframe_validation is false", function ()
             local test_wsse_header_non_strict = wsse_lib.generate_header('test2', 'test2', '2018-02-27T09:46:22Z')
             assert.has_no.errors(function() wsse:authenticate(test_wsse_header_non_strict) end)
+        end)
+
+        it("should return with the wsse key when authentication was successful", function()
+            expected_key = {
+                id = 1,
+                consumer_id = 1,
+                key = "test",
+                secret = "test",
+                strict_timeframe_validation = true
+            }
+            wsse_key = wsse:authenticate(test_wsse_header)
+            assert.are.same(expected_key, wsse_key)
         end)
 
     end)
