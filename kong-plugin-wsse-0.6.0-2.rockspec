@@ -1,9 +1,9 @@
 package = "kong-plugin-wsse"
-version = "0.5.0-2"
+version = "0.6.0-2"
 supported_platforms = {"linux", "macosx"}
 source = {
   url = "git+https://github.com/emartech/kong-plugin-wsse.git",
-  tag = "0.5.0"
+  tag = "0.6.0"
 }
 description = {
   summary = "WSSE auth plugin for Kong API gateway.",
@@ -17,7 +17,8 @@ dependencies = {
   "lbase64 20120820-1",
   "sha1 0.5-1",
   "uuid 0.2-1",
-  "classic 0.1.0-1"
+  "classic 0.1.0-1",
+  "kong-lib-logger >= 0.3.0-1"
 }
 build = {
   type = "builtin",
