@@ -1,5 +1,4 @@
 kong:
-#  image: emarsys/kong-dev-docker:latest
   build: .
   dockerfile: Dockerfile
   depends_on:
@@ -28,7 +27,7 @@ kong:
     - ./spec/kong_tests.conf:/kong/spec/kong_tests.conf
 
 kong-database:
-  image: postgres:9.5
+  image: postgres:9.6
   environment:
     - POSTGRES_USER=kong
     - POSTGRES_DB=kong
