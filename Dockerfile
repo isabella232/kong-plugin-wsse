@@ -1,4 +1,4 @@
-FROM emarsys/kong-dev-docker:d6ff6d2b1b1fd967e0203a96811ad778c813f401
+FROM emarsys/kong-dev-docker:03dcac138951fc470872105917a67b4655205495
 
 RUN luarocks install date 2.1.2-1
 RUN luarocks install inspect 3.1.1-0
