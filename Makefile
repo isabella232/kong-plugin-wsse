@@ -28,8 +28,9 @@ test:    ##                 Run tests
 	docker-compose run kong bash -c "cd /kong && bin/busted /kong-plugins/spec"
 
 dev-env:    ##                 Creates API (testapi) and consumer (TestUser)
-	bash -c "curl -i -X POST --url http://localhost:8001/apis/ --data 'name=testapi' --data 'upstream_url=http://mockbin.org/request' --data 'uris=/'"
-	bash -c "curl -i -X POST --url http://localhost:8001/apis/testapi/plugins/ --data 'name=wsse'"
+	bash -c "curl -i -X POST --url http://localhost:8001/services/ --data 'name=testapi' --data 'url=http://mockbin.org/request'"
+	bash -c "curl -i -X POST --url http://localhost:8001/services/testapi/routes/ --data 'paths[]=/'"
+	bash -c "curl -i -X POST --url http://localhost:8001/services/testapi/plugins/ --data 'name=wsse'"
 	bash -c "curl -i -X POST --url http://localhost:8001/consumers/ --data 'username=TestUser'"
 	bash -c "curl -i -X POST --url http://localhost:8001/consumers/TestUser/wsse_key/ --data 'key=test_user001&secret=53cr37p455w0rd'"
 
