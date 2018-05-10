@@ -55,42 +55,6 @@ describe("Plugin: wsse (access)", function()
       assert.is_equal(api_id, json.api_id)
     end)
 
-    it("GET returns the given wsse_keys", function()
-      assert(helpers.admin_client():send {
-        method = "POST",
-        path = "/consumers/test/wsse_key",
-        body = {
-          key = 'test5678',
-          secret = 'test5678'
-        },
-        headers = {
-          ["Content-Type"] = "application/json"
-        }
-      })
-
-      assert(helpers.admin_client():send {
-        method = "POST",
-        path = "/consumers/test/wsse_key",
-        body = {
-          key = 'test9876',
-          secret = 'test9876'
-        },
-        headers = {
-          ["Content-Type"] = "application/json"
-        }
-      })
-
-      local res = assert(helpers.admin_client():send {
-        method = "GET",
-        path = "/consumers/test/wsse_key",
-      })
-
-      local body = assert.res_status(200, res)
-      local json = cjson.decode(body)
-
-      assert.is_equal(2, json.total)
-    end)
-
     it("DELETE removes wsse_key", function()
 
       assert(helpers.admin_client():send {

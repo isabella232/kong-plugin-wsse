@@ -13,10 +13,6 @@ return {
 
         PUT = function(self, dao_factory, helpers)
             crud.put(self.params, dao_factory.wsse_keys)
-        end,
-
-        GET = function(self, dao_factory, helpers)
-            crud.paginated_set(self, dao_factory.wsse_keys)
         end
     },
     ["/consumers/:username_or_id/wsse_key/:credential_username_or_id"] = {
