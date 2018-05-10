@@ -34,6 +34,9 @@ dev-env:    ##                 Creates API (testapi) and consumer (TestUser)
 	bash -c "curl -i -X POST --url http://localhost:8001/consumers/ --data 'username=TestUser'"
 	bash -c "curl -i -X POST --url http://localhost:8001/consumers/TestUser/wsse_key/ --data 'key=test_user001&secret=53cr37p455w0rd'"
 
+wsse-key:
+	bash -c "curl -i -X POST --url http://localhost:8001/consumers/TestUser/wsse_key/ --data 'key=test_user001&secret=53cr37p455w0rd'"
+
 ping:    ##                 Pings kong on localhost:8000
 	bash -c "curl -i http://localhost:8000"
 
