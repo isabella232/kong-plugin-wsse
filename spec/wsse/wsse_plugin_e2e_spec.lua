@@ -77,6 +77,39 @@ describe("Plugin: wsse (access)", function()
       assert.res_status(204, res)
     end)
 
+    it("returns with proper wsse key without secret when wsse key exists", function ()
+      assert(helpers.admin_client():send {
+        method = "POST",
+        path = "/consumers/test/wsse_key/",
+        body = {
+          key = 'test2',
+          secret = 'test2',
+          strict_timeframe_validation = false
+        },
+        headers = {
+          ["Content-Type"] = "application/json"
+        }
+      })
+
+      local res_get = assert(helpers.admin_client():send {
+        method = "GET",
+        path = "/consumers/test/wsse_key/test2",
+      })
+
+      local body = assert.res_status(200, res_get)
+      local wsse_get = cjson.decode(body)
+      assert.is_equal('test2', wsse_get.key)
+      assert.is_nil(wsse_get.secret)
+    end)
+
+    it("reponds with status code 404 when wsse key does not exist", function ()
+      local res_get = assert(helpers.admin_client():send {
+        method = "GET",
+        path = "/consumers/test/wsse_key/non_existing_key",
+      })
+
+      assert.res_status(404, res_get)
+    end)
   end)
 
   describe("Authentication", function()

@@ -37,6 +37,16 @@ return {
             self.wsse_key = credentials[1]
         end,
 
+        GET = function(self, dao_factory, helpers)
+            local wsse = {}
+            wsse.id = self.wsse_key.id
+            wsse.consumer_id = self.wsse_key.consumer_id
+            wsse.key = self.wsse_key.key
+            wsse.strict_timeframe_validation = self.wsse_key.strict_timeframe_validation
+
+            return helpers.responses.send_HTTP_OK(wsse)
+        end,
+
         DELETE = function(self, dao_factory, helpers)
             crud.delete(self.wsse_key, dao_factory.wsse_keys)
         end
