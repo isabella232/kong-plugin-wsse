@@ -8,7 +8,7 @@ source = {
 description = {
   summary = "WSSE auth plugin for Kong API gateway.",
   homepage = "https://github.com/emartech/kong-plugin-wsse",
-  license = "UNLICENSED"
+  license = "MIT"
 }
 dependencies = {
   "lua >= 5.1",
