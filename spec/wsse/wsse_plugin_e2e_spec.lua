@@ -1,34 +1,40 @@
 local helpers = require "spec.helpers"
 local cjson = require "cjson"
 local Wsse = require "kong.plugins.wsse.wsse_lib"
-local singletons = require "kong.singletons"
+local TestHelper = require "spec.test_helper"
+
+local function get_id_from_response(response)
+  local body = assert.res_status(201, response)
+  return cjson.decode(body)
+end
+
+local function setup_test_env()
+  helpers.dao:truncate_tables()
+
+  local dev_env = { custom_plugins = 'wsse' }
+
+  assert(helpers.start_kong(dev_env))
+
+  local service = get_id_from_response(TestHelper.setup_service())
+  local route = get_id_from_response(TestHelper.setup_route_for_service(service.id))
+  local plugin = get_id_from_response(TestHelper.setup_plugin_for_service(service.id, 'wsse'))
+  local consumer = get_id_from_response(TestHelper.setup_consumer('TestUser'))
+
+  return service, route, plugin, consumer
+end
 
 describe("Plugin: wsse (access)", function()
-  local dev_env = {
-    custom_plugins = 'wsse'
-  }
 
+  local service
+  local route
   local plugin
-  local api_id
+  local consumer
 
-  setup(function()
-    local api1 = assert(helpers.dao.apis:insert { name = "test-api", hosts = { "test1.com" }, upstream_url = "http://mockbin.com" })
-    api_id = api1.id
-
-    plugin = assert(helpers.dao.plugins:insert {
-      api_id = api1.id,
-      name = "wsse",
-      config = {}
-    })
-
-    consumer = assert(helpers.dao.consumers:insert {
-      username = "test"
-    })
-
-    assert(helpers.start_kong(dev_env))
+  before_each(function()
+    service, route, plugin, consumer = setup_test_env()
   end)
 
-  teardown(function()
+  after_each(function()
     helpers.stop_kong(nil)
   end)
 
@@ -59,7 +65,7 @@ describe("Plugin: wsse (access)", function()
 
       assert(helpers.admin_client():send {
         method = "POST",
-        path = "/consumers/test/wsse_key",
+        path = "/consumers/" .. consumer.id .. "/wsse_key",
         body = {
           key = 'test1234',
           secret = 'test1234'
@@ -71,7 +77,7 @@ describe("Plugin: wsse (access)", function()
 
       local res = assert(helpers.admin_client():send {
         method = "DELETE",
-        path = "/consumers/test/wsse_key/test1234"
+        path = "/consumers/" .. consumer.id .. "/wsse_key/test1234"
       })
 
       assert.res_status(204, res)
@@ -80,7 +86,7 @@ describe("Plugin: wsse (access)", function()
     it("returns with proper wsse key without secret when wsse key exists", function ()
       assert(helpers.admin_client():send {
         method = "POST",
-        path = "/consumers/test/wsse_key/",
+        path = "/consumers/" .. consumer.id .. "/wsse_key/",
         body = {
           key = 'test2',
           secret = 'test2',
@@ -93,7 +99,7 @@ describe("Plugin: wsse (access)", function()
 
       local res_get = assert(helpers.admin_client():send {
         method = "GET",
-        path = "/consumers/test/wsse_key/test2",
+        path = "/consumers/" .. consumer.id .. "/wsse_key/test2",
       })
 
       local body = assert.res_status(200, res_get)
@@ -105,7 +111,7 @@ describe("Plugin: wsse (access)", function()
     it("reponds with status code 404 when wsse key does not exist", function ()
       local res_get = assert(helpers.admin_client():send {
         method = "GET",
-        path = "/consumers/test/wsse_key/non_existing_key",
+        path = "/consumers/" .. consumer.id .. "/wsse_key/non_existing_key",
       })
 
       assert.res_status(404, res_get)
@@ -145,7 +151,7 @@ describe("Plugin: wsse (access)", function()
 
       assert(helpers.admin_client():send {
         method = "POST",
-        path = "/consumers/test/wsse_key/",
+        path = "/consumers/" .. consumer.id .. "/wsse_key/",
         body = {
           key = 'test',
           secret = 'test'
@@ -170,7 +176,7 @@ describe("Plugin: wsse (access)", function()
     it("responds with status 401 when wsse key not found", function()
       assert(helpers.admin_client():send {
         method = "PUT",
-        path = "/consumers/test/wsse_key/",
+        path = "/consumers/" .. consumer.id .. "/wsse_key/",
         body = {
           key = 'test001'
         },
@@ -196,7 +202,7 @@ describe("Plugin: wsse (access)", function()
 
       assert(helpers.admin_client():send {
         method = "POST",
-        path = "/consumers/test/wsse_key/",
+        path = "/consumers/" .. consumer.id .. "/wsse_key/",
         body = {
           key = 'test2',
           secret = 'test2',
