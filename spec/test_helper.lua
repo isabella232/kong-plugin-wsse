@@ -57,8 +57,4 @@ function TestHelper.setup_consumer(customer_name)
     })
 end
 
-function TestHelper.create_wsse_key_for()
-
-end
-
 return TestHelper

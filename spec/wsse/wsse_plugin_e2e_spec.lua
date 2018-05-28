@@ -3,7 +3,7 @@ local cjson = require "cjson"
 local Wsse = require "kong.plugins.wsse.wsse_lib"
 local TestHelper = require "spec.test_helper"
 
-local function get_id_from_response(response)
+local function get_response_body(response)
   local body = assert.res_status(201, response)
   return cjson.decode(body)
 end
@@ -11,14 +11,10 @@ end
 local function setup_test_env()
   helpers.dao:truncate_tables()
 
-  local dev_env = { custom_plugins = 'wsse' }
-
-  assert(helpers.start_kong(dev_env))
-
-  local service = get_id_from_response(TestHelper.setup_service())
-  local route = get_id_from_response(TestHelper.setup_route_for_service(service.id))
-  local plugin = get_id_from_response(TestHelper.setup_plugin_for_service(service.id, 'wsse'))
-  local consumer = get_id_from_response(TestHelper.setup_consumer('TestUser'))
+  local service = get_response_body(TestHelper.setup_service())
+  local route = get_response_body(TestHelper.setup_route_for_service(service.id))
+  local plugin = get_response_body(TestHelper.setup_plugin_for_service(service.id, 'wsse'))
+  local consumer = get_response_body(TestHelper.setup_consumer('TestUser'))
 
   return service, route, plugin, consumer
 end
@@ -34,7 +30,11 @@ describe("Plugin: wsse (access)", function()
     service, route, plugin, consumer = setup_test_env()
   end)
 
-  after_each(function()
+  setup(function()
+    helpers.start_kong({ custom_plugins = 'wsse' })
+  end)
+
+  teardown(function()
     helpers.stop_kong(nil)
   end)
 
