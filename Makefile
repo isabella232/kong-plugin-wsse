@@ -25,7 +25,9 @@ publish: ## Build and publish plugin to luarocks
 	docker-compose run kong bash -c "cd /kong-plugins && chmod +x publish.sh && ./publish.sh"
 
 test: ## Run tests
-	docker-compose run kong bash -c "cd /kong && bin/busted -v /kong-plugins/spec"
+	docker-compose up -d
+	docker-compose run kong bash -c "cd /kong && bin/busted /kong-plugins/spec"
+	docker-compose down
 
 dev-env: ## Creates a service (testapi), route (/) and consumer (TestUser)
 	bash -c "curl -i -X POST --url http://localhost:8001/services/ --data 'name=testapi' --data 'url=http://mockbin.org/request'"
