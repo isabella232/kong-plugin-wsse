@@ -68,8 +68,6 @@ local function iterate_pages(dao)
 end
 
 local function identity(entity)
-    local pp = require("pl.pretty")
-    pp.dump(entity)
     return entity
 end
 
