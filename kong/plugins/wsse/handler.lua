@@ -71,11 +71,21 @@ local function identity(entity)
     return entity
 end
 
-local function cache_all_entities_in(dao)
+local function cache_all_entities_in(dao, key_retriever)
     for entity in iterate_pages(dao) do
-        local cache_key = dao:cache_key(entity)
+        local unique_identifier = key_retriever(entity)
+        local cache_key = dao:cache_key(unique_identifier)
+        
         singletons.cache:get(cache_key, nil, identity, entity)
     end
+end
+
+local function retrieve_id_from_consumer(consumer)
+    return consumer.id
+end
+
+local function retrieve_wsse_key_name(wsse_key)
+    return wsse_key.key
 end
 
 function WsseHandler:new()
@@ -85,8 +95,8 @@ end
 function WsseHandler:init_worker()
     WsseHandler.super.init_worker(self)
 
-    cache_all_entities_in(singletons.dao.consumers)
-    cache_all_entities_in(singletons.dao.wsse_keys)
+    cache_all_entities_in(singletons.dao.consumers, retrieve_id_from_consumer)
+    cache_all_entities_in(singletons.dao.wsse_keys, retrieve_wsse_key_name)
 end 
 
 function WsseHandler:access(conf)
