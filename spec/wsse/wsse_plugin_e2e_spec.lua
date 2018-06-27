@@ -108,6 +108,31 @@ describe("Plugin: wsse (access)", function()
       assert.is_nil(wsse_get.secret)
     end)
 
+    it("save the lowercase key aslo to db when wsse key creation was succesful", function ()
+      assert(helpers.admin_client():send {
+        method = "POST",
+        path = "/consumers/" .. consumer.id .. "/wsse_key/",
+        body = {
+          key = 'Test_MixedCase',
+          secret = 'testmixedcase'
+        },
+        headers = {
+          ["Content-Type"] = "application/json"
+        }
+      })
+
+      local res_get = assert(helpers.admin_client():send {
+        method = "GET",
+        path = "/consumers/" .. consumer.id .. "/wsse_key/Test_MixedCase",
+      })
+
+      local body = assert.res_status(200, res_get)
+      local wsse_get = cjson.decode(body)
+      assert.is_equal('Test_MixedCase', wsse_get.key)
+      assert.is_equal('test_mixedcase', wsse_get.key_lower)
+      assert.is_nil(wsse_get.secret)
+    end)
+
     it("reponds with status code 404 when wsse key does not exist", function ()
       local res_get = assert(helpers.admin_client():send {
         method = "GET",

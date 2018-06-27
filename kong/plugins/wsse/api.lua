@@ -47,6 +47,7 @@ return {
             wsse.consumer_id = self.wsse_key.consumer_id
             wsse.key = self.wsse_key.key
             wsse.strict_timeframe_validation = self.wsse_key.strict_timeframe_validation
+            wsse.key_lower = self.wsse_key.key_lower
 
             return helpers.responses.send_HTTP_OK(wsse)
         end,
