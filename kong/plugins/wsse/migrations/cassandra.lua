@@ -45,5 +45,36 @@ return {
         end,
         down = function()
         end
-    }
+    },
+    {
+        name = "2018-06-27-141100_add_lower_case_key_to_wssekeys",
+        up = [[
+              ALTER TABLE wsse_keys ADD key_lower TYPE text ;
+              CREATE INDEX IF NOT EXISTS ON wsse_keys(key_lower);
+            ]],
+        down = [[
+              ALTER TABLE wsse_keys DROP key_lower;
+            ]]
+    },
+    {
+        name = "2018-06-27-141200_populate_lowercase_wsse_keys",
+        up = function(_, _, dao)
+            local rows, err = dao.wsse_keys:find_all()
+            if err then
+                return err
+            end
+
+            for _, row in ipairs(rows) do
+
+                row.key_lower = row.key:lower()
+
+                local _, err = dao.wsse_keys:update(row, row)
+                if err then
+                    return err
+                end
+            end
+        end,
+        down = function()
+        end
+    },
 }

@@ -24,5 +24,16 @@ return {
         down = [[
               ALTER TABLE wsse_keys DROP COLUMN strict_timeframe_validation;
             ]]
-    }
+    },
+    {
+        name = "2018-06-27-141100_add_lower_case_key_to_wssekeys",
+        up = [[
+               ALTER TABLE wsse_keys ADD COLUMN key_lower text UNIQUE;
+               CREATE INDEX wssekeys_key_lower_idx ON wsse_keys(key_lower);
+               UPDATE wsse_keys SET key_lower = lower(key);
+            ]],
+        down = [[
+              ALTER TABLE wsse_keys DROP COLUMN key_lower;
+            ]]
+    },
 }
