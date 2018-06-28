@@ -12,6 +12,7 @@ return {
   no_consumer = true,
   fields = {
     anonymous = {type = "string", default = nil, func = check_user},
-    timeframe_validation_treshhold_in_minutes = { type = "number", default = 5 }
+    timeframe_validation_treshhold_in_minutes = { type = "number", default = 5 },
+    strict_key_matching = { type = "boolean", default = true }
   }
 }
