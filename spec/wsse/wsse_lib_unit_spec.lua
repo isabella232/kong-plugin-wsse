@@ -11,7 +11,7 @@ describe("wsse lib", function()
     end
 
     local key_db = {
-        find_by_username = function(username)
+        find_by_username = function(self, username)
             if username == nil then
                 error({msg = "Username is required."})
             end

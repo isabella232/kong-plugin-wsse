@@ -11,24 +11,15 @@ end
 local function setup_test_env()
   helpers.dao:truncate_tables()
 
-  local service = get_response_body(TestHelper.setup_service())
-  local route = get_response_body(TestHelper.setup_route_for_service(service.id))
-  local plugin = get_response_body(TestHelper.setup_plugin_for_service(service.id, 'wsse'))
+  local service = get_response_body(TestHelper.setup_service('testservice', 'http://mockbin.org/request'))
+  local route = get_response_body(TestHelper.setup_route_for_service(service.id, '/'))
+  local plugin = get_response_body(TestHelper.setup_plugin_for_service(service.id, 'wsse', {}))
   local consumer = get_response_body(TestHelper.setup_consumer('TestUser'))
 
   return service, route, plugin, consumer
 end
 
 describe("Plugin: wsse (access)", function()
-
-  local service
-  local route
-  local plugin
-  local consumer
-
-  before_each(function()
-    service, route, plugin, consumer = setup_test_env()
-  end)
 
   setup(function()
     helpers.start_kong({ custom_plugins = 'wsse' })
@@ -39,6 +30,13 @@ describe("Plugin: wsse (access)", function()
   end)
 
   describe("Admin API", function()
+
+    local service, route, plugin, consumer
+
+    before_each(function()
+      service, route, plugin, consumer = setup_test_env()
+    end)
+
     it("registered the plugin globally", function()
       local res = assert(helpers.admin_client():send {
         method = "GET",
@@ -144,7 +142,14 @@ describe("Plugin: wsse (access)", function()
   end)
 
   describe("authentication", function()
+
     context("when no anonymous consumer was configured", function()
+
+      local service, route, plugin, consumer
+
+      before_each(function()
+        service, route, plugin, consumer = setup_test_env()
+      end)
 
       it("should reject request with HTTP 401 if X-WSSE header is not present", function()
         local res = assert(helpers.proxy_client():send {
@@ -154,11 +159,11 @@ describe("Plugin: wsse (access)", function()
             ["Host"] = "test1.com"
           }
         })
-  
+
         local body = assert.res_status(401, res)
         assert.is_equal('{"message":"WSSE authentication header is missing."}', body)
       end)
-  
+
       it("should reject request with HTTP 401 if X-WSSE header is malformed", function()
         local res = assert(helpers.proxy_client():send {
           method = "GET",
@@ -168,14 +173,14 @@ describe("Plugin: wsse (access)", function()
             ["X-WSSE"] = "some wsse header string"
           }
         })
-  
+
         local body = assert.res_status(401, res)
         assert.is_equal('{"message":"The Username field is missing from WSSE authentication header."}', body)
       end)
-  
+
       it("should proxy the request to the upstream on successful auth", function()
         local header = Wsse.generate_header("test", "test")
-  
+
         assert(helpers.admin_client():send {
           method = "POST",
           path = "/consumers/" .. consumer.id .. "/wsse_key/",
@@ -187,7 +192,7 @@ describe("Plugin: wsse (access)", function()
             ["Content-Type"] = "application/json"
           }
         })
-  
+
         local res = assert(helpers.proxy_client():send {
           method = "GET",
           path = "/request",
@@ -196,10 +201,10 @@ describe("Plugin: wsse (access)", function()
             ["X-WSSE"] = header
           }
         })
-  
+
         assert.res_status(200, res)
       end)
-  
+
       it("should reject the request with HTTP 401 when WSSE key could not be found", function()
         assert(helpers.admin_client():send {
           method = "PUT",
@@ -211,7 +216,7 @@ describe("Plugin: wsse (access)", function()
             ["Content-Type"] = "application/json"
           }
         })
-  
+
         local res = assert(helpers.proxy_client():send {
           method = "GET",
           path = "/request",
@@ -220,14 +225,14 @@ describe("Plugin: wsse (access)", function()
             ["X-WSSE"] = 'UsernameToken Username="test003", PasswordDigest="ODM3MmJiN2U2OTA2ZDhjMDlkYWExY2ZlNDYxODBjYTFmYTU0Y2I0Mg==", Nonce="4603fcf8f0fb2ea03a41ff007ea70d25", Created="2018-02-27T09:46:22Z"'
           }
         })
-  
+
         assert.res_status(401, res)
       end)
-  
+
       context("when timeframe validation fails", function()
         it("should proxy the request to the upstream if strict validation was disabled", function ()
           local header = Wsse.generate_header("test2", "test2", "2017-02-27T09:46:22Z")
-    
+
           assert(helpers.admin_client():send {
             method = "POST",
             path = "/consumers/" .. consumer.id .. "/wsse_key/",
@@ -240,7 +245,7 @@ describe("Plugin: wsse (access)", function()
               ["Content-Type"] = "application/json"
             }
           })
-    
+
           local res = assert(helpers.proxy_client():send {
             method = "GET",
             path = "/request",
@@ -249,13 +254,13 @@ describe("Plugin: wsse (access)", function()
               ["X-WSSE"] = header
             }
           })
-    
+
           assert.res_status(200, res)
         end)
 
         it("should reject the request with HTTP 401 when strict validation is on", function ()
           local header = Wsse.generate_header("test2", "test2", "2017-02-27T09:46:22Z")
-    
+
           assert(helpers.admin_client():send {
             method = "POST",
             path = "/consumers/" .. consumer.id .. "/wsse_key/",
@@ -267,7 +272,7 @@ describe("Plugin: wsse (access)", function()
               ["Content-Type"] = "application/json"
             }
           })
-    
+
           local res = assert(helpers.proxy_client():send {
             method = "GET",
             path = "/request",
@@ -276,25 +281,25 @@ describe("Plugin: wsse (access)", function()
               ["X-WSSE"] = header
             }
           })
-    
+
           assert.res_status(401, res)
         end)
       end)
 
     end)
 
-    describe("With anonymous user enabled", function()
+    context("With anonymous user enabled", function()
       local service, route, anonymous, plugin, consumer
 
       before_each(function()
         helpers.dao:truncate_tables()
 
-        service = get_response_body(TestHelper.setup_service())
-        route = get_response_body(TestHelper.setup_route_for_service(service.id))
+        service = get_response_body(TestHelper.setup_service('testservice', 'http://mockbin.org/request'))
+        route = get_response_body(TestHelper.setup_route_for_service(service.id, '/'))
 
         anonymous = get_response_body(TestHelper.setup_consumer('anonymous'))
         plugin = get_response_body(TestHelper.setup_plugin_for_service(service.id, 'wsse', {["anonymous"] = anonymous.id}))
-        
+
         consumer = get_response_body(TestHelper.setup_consumer('TestUser'))
       end)
 
@@ -306,7 +311,7 @@ describe("Plugin: wsse (access)", function()
             ["Host"] = "test1.com"
           }
         })
-  
+
         local response = assert.res_status(200, res)
         local body = cjson.decode(response)
         assert.is_equal("anonymous", body.headers["x-consumer-username"])
@@ -321,7 +326,7 @@ describe("Plugin: wsse (access)", function()
             ["X-WSSE"] = "some wsse header string"
           }
         })
-  
+
         local response = assert.res_status(200, res)
         local body = cjson.decode(response)
         assert.is_equal("anonymous", body.headers["x-consumer-username"])
@@ -329,7 +334,7 @@ describe("Plugin: wsse (access)", function()
 
       it("should proxy the request to the upstream on successful auth", function()
         local header = Wsse.generate_header("test", "test")
-  
+
         assert(helpers.admin_client():send {
           method = "POST",
           path = "/consumers/" .. consumer.id .. "/wsse_key/",
@@ -341,7 +346,7 @@ describe("Plugin: wsse (access)", function()
             ["Content-Type"] = "application/json"
           }
         })
-  
+
         local res = assert(helpers.proxy_client():send {
           method = "GET",
           path = "/request",
@@ -350,7 +355,7 @@ describe("Plugin: wsse (access)", function()
             ["X-WSSE"] = header
           }
         })
-  
+
         local response = assert.res_status(200, res)
         local body = cjson.decode(response)
         assert.is_equal("TestUser", body.headers["x-consumer-username"])
@@ -365,7 +370,7 @@ describe("Plugin: wsse (access)", function()
             ["X-WSSE"] = 'UsernameToken Username="non-existing", PasswordDigest="ODM3MmJiN2U2OTA2ZDhjMDlkYWExY2ZlNDYxODBjYTFmYTU0Y2I0Mg==", Nonce="4603fcf8f0fb2ea03a41ff007ea70d25", Created="2018-02-27T09:46:22Z"'
           }
         })
-  
+
         local response = assert.res_status(200, res)
         local body = cjson.decode(response)
         assert.is_equal("anonymous", body.headers["x-consumer-username"])
@@ -374,7 +379,7 @@ describe("Plugin: wsse (access)", function()
       context("when timeframe is invalid", function()
         it("should proxy the request to the upstream if strict validation was disabled", function ()
           local header = Wsse.generate_header("test2", "test2", "2017-02-27T09:46:22Z")
-    
+
           assert(helpers.admin_client():send {
             method = "POST",
             path = "/consumers/" .. consumer.id .. "/wsse_key/",
@@ -387,7 +392,7 @@ describe("Plugin: wsse (access)", function()
               ["Content-Type"] = "application/json"
             }
           })
-    
+
           local res = assert(helpers.proxy_client():send {
             method = "GET",
             path = "/request",
@@ -396,7 +401,7 @@ describe("Plugin: wsse (access)", function()
               ["X-WSSE"] = header
             }
           })
-    
+
           local response = assert.res_status(200, res)
           local body = cjson.decode(response)
           assert.is_equal("TestUser", body.headers["x-consumer-username"])
@@ -404,7 +409,7 @@ describe("Plugin: wsse (access)", function()
 
         it("should proxy the request with anonymous when strict validation is on", function ()
           local header = Wsse.generate_header("test2", "test2", "2017-02-27T09:46:22Z")
-    
+
           assert(helpers.admin_client():send {
             method = "POST",
             path = "/consumers/" .. consumer.id .. "/wsse_key/",
@@ -416,7 +421,7 @@ describe("Plugin: wsse (access)", function()
               ["Content-Type"] = "application/json"
             }
           })
-    
+
           local res = assert(helpers.proxy_client():send {
             method = "GET",
             path = "/request",
@@ -425,12 +430,57 @@ describe("Plugin: wsse (access)", function()
               ["X-WSSE"] = header
             }
           })
-    
+
           local response = assert.res_status(200, res)
           local body = cjson.decode(response)
           assert.is_equal("anonymous", body.headers["x-consumer-username"])
         end)
       end)
+    end)
+
+    context('when strict key matching is disabled', function()
+
+      local service, route, anonymous, plugin, consumer
+
+      before_each(function()
+        helpers.dao:truncate_tables()
+
+        service = get_response_body(TestHelper.setup_service('testservice', 'http://mockbin.org/request'))
+        route = get_response_body(TestHelper.setup_route_for_service(service.id, '/'))
+
+        anonymous = get_response_body(TestHelper.setup_consumer('anonymous'))
+        plugin = get_response_body(TestHelper.setup_plugin_for_service(service.id, 'wsse', {["strict_key_matching"] = false}))
+
+        consumer = get_response_body(TestHelper.setup_consumer('TestUser'))
+      end)
+
+      it('should respond with 200 when wsse key casing is different', function()
+        local header = Wsse.generate_header("testci", "test")
+
+        assert(helpers.admin_client():send {
+          method = "POST",
+          path = "/consumers/" .. consumer.id .. "/wsse_key/",
+          body = {
+            key = 'TeStCi',
+            secret = 'test'
+          },
+          headers = {
+            ["Content-Type"] = "application/json"
+          }
+        })
+
+        local res = assert(helpers.proxy_client():send {
+          method = "GET",
+          path = "/request",
+          headers = {
+            ["Host"] = "test1.com",
+            ["X-WSSE"] = header
+          }
+        })
+
+        assert.res_status(200, res)
+      end)
+
     end)
   end)
 

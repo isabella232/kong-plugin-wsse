@@ -2,14 +2,14 @@ local helpers = require "spec.helpers"
 
 local TestHelper = {}
 
-function TestHelper.setup_service()
+function TestHelper.setup_service(service_name, upstream_url)
 
     return assert(helpers.admin_client():send {
         method = "POST",
         path = "/services/",
         body = {
-            name = 'testservice',
-            url = 'http://mockbin.org/request'
+            name = service_name,
+            url = upstream_url
         },
         headers = {
             ["Content-Type"] = "application/json"
@@ -18,12 +18,12 @@ function TestHelper.setup_service()
 
 end
 
-function TestHelper.setup_route_for_service(service_id)
+function TestHelper.setup_route_for_service(service_id, path)
     return assert(helpers.admin_client():send {
         method = "POST",
         path = "/services/" .. service_id .. "/routes/",
         body = {
-            paths = {'/'},
+            paths = {path},
         },
         headers = {
             ["Content-Type"] = "application/json"
@@ -32,16 +32,13 @@ function TestHelper.setup_route_for_service(service_id)
 end
 
 function TestHelper.setup_plugin_for_service(service_id, plugin_name, config)
-    local request_body = {name = plugin_name}
-
-    if config ~= nil then
-        request_body.config = config
-    end
-
     return assert(helpers.admin_client():send {
         method = "POST",
         path = "/services/" .. service_id .. "/plugins/",
-        body = request_body,
+        body = {
+            name = plugin_name,
+            config = config
+        },
         headers = {
             ["Content-Type"] = "application/json"
         }

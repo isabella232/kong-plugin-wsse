@@ -28,8 +28,8 @@ local function set_consumer(consumer, wsse_key)
     end
 end
 
-local function authenticate(auth_header, timeframe_threshold_in_minutes)
-    local authenticator = Wsse:new(KeyDb(), timeframe_threshold_in_minutes)
+local function authenticate(auth_header, conf)
+    local authenticator = Wsse:new(KeyDb(conf.strict_key_matching), conf.timeframe_validation_treshhold_in_minutes)
 
     return authenticator:authenticate(auth_header)
 end
@@ -111,7 +111,7 @@ function WsseHandler:access(conf)
     local successful_auth, error_or_wsse_key = pcall(
         authenticate,
         wsse_header_string,
-        conf.timeframe_validation_treshhold_in_minutes
+        conf
     )
 
     local success, result = pcall(function()

@@ -97,7 +97,7 @@ function Wsse:authenticate(header_string)
 
     check_required_params(wsse_params)
     local status, err = pcall(function()
-        wsse_key = self.key_db.find_by_username(wsse_params['username'])
+        wsse_key = self.key_db:find_by_username(wsse_params['username'])
         strict_timeframe_validation = wsse_key['strict_timeframe_validation']
         secret = wsse_key['secret']
     end)
