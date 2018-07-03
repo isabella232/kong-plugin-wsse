@@ -116,21 +116,21 @@ function WsseHandler:access(conf)
 
     local success, result = pcall(function()
         if successful_auth then
-            Logger.getInstance(ngx):logInfo({msg = "WSSE authentication was successful."})
+            Logger.getInstance(ngx):logInfo({msg = "WSSE authentication was successful.", ["x-wsse"] = wsse_header_string})
 
             local consumer_db = ConsumerDb()
             local consumer = consumer_db.find_by_id(error_or_wsse_key.consumer_id)
 
             set_consumer(consumer, error_or_wsse_key)
         elseif anonymous_passthrough_is_enabled(conf) then
-            Logger.getInstance(ngx):logInfo({msg = "WSSE authentication failed, allowing anonymous passthrough."})
+            Logger.getInstance(ngx):logInfo({msg = "WSSE authentication failed, allowing anonymous passthrough.", ["x-wsse"] = wsse_header_string})
 
             local consumer_db = ConsumerDb()
             local consumer = consumer_db.find_by_id(conf.anonymous, true)
 
             set_consumer(consumer)
         else
-            Logger.getInstance(ngx):logInfo({status = 401, msg = error_or_wsse_key.msg})
+            Logger.getInstance(ngx):logInfo({status = 401, msg = error_or_wsse_key.msg, ["x-wsse"] = wsse_header_string})
 
             return responses.send(401, error_or_wsse_key.msg)
         end
