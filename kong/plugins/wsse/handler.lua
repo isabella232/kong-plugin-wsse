@@ -19,7 +19,7 @@ local function set_consumer(consumer, wsse_key)
     ngx.ctx.authenticated_consumer = consumer
 
     if wsse_key then
-        ngx.req.set_header(constants.HEADERS.CREDENTIAL_USERNAME, wsse_key.username)
+        ngx.req.set_header(constants.HEADERS.CREDENTIAL_USERNAME, wsse_key.key)
         ngx.req.set_header(constants.HEADERS.ANONYMOUS, nil)
 
         ngx.ctx.authenticated_credential = wsse_key
