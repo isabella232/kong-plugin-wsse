@@ -25,6 +25,7 @@ services:
       - KONG_PROXY_ACCESS_LOG=/proc/1/fd/1
       - KONG_PROXY_ERROR_LOG=/proc/1/fd/2
       - LUAROCKS_API_KEY=${LUAROCKS_API_KEY}
+      - KONG_NGINX_WORKER_PROCESSES=1
     ports:
       - 8000:8000
       - 8001:8001
@@ -52,3 +53,8 @@ services:
       retries: 5
     volumes:
       - ./.docker/postgres-data:/var/lib/postgresql/data:rw
+
+  mockbin:
+    image: mashape/mockbin
+    ports:
+      - 8080:8080

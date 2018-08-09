@@ -30,7 +30,7 @@ test: ## Run tests
 	docker-compose down
 
 dev-env: ## Creates a service (testapi), route (/) and consumer (TestUser)
-	bash -c "curl -i -X POST --url http://localhost:8001/services/ --data 'name=testapi' --data 'url=http://mockbin.org/request'"
+	bash -c "curl -i -X POST --url http://localhost:8001/services/ --data 'name=testapi' --data 'url=http://mockbin:8080/request'"
 	bash -c "curl -i -X POST --url http://localhost:8001/services/testapi/routes/ --data 'paths[]=/'"
 	bash -c "curl -i -X POST --url http://localhost:8001/services/testapi/plugins/ --data 'name=wsse'"
 	bash -c "curl -i -X POST --url http://localhost:8001/consumers/ --data 'username=TestUser'"

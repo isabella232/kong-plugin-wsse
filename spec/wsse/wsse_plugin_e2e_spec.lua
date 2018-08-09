@@ -11,7 +11,7 @@ end
 local function setup_test_env()
   helpers.dao:truncate_tables()
 
-  local service = get_response_body(TestHelper.setup_service('testservice', 'http://mockbin.org/request'))
+  local service = get_response_body(TestHelper.setup_service('testservice', 'http://mockbin:8080/request'))
   local route = get_response_body(TestHelper.setup_route_for_service(service.id, '/'))
   local plugin = get_response_body(TestHelper.setup_plugin_for_service(service.id, 'wsse', {}))
   local consumer = get_response_body(TestHelper.setup_consumer('TestUser'))
