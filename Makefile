@@ -35,6 +35,9 @@ dev-env: ## Creates a service (testapi), route (/) and consumer (TestUser)
 	bash -c "curl -i -X POST --url http://localhost:8001/services/testapi/plugins/ --data 'name=wsse'"
 	bash -c "curl -i -X POST --url http://localhost:8001/consumers/ --data 'username=TestUser'"
 	bash -c "curl -i -X POST --url http://localhost:8001/consumers/TestUser/wsse_key/ --data 'key=test_user001&secret=53cr37p455w0rd'"
+	bash -c "curl -i -X POST --url http://localhost:8001/consumers/ --data 'username=AnotherTestUser'"
+	bash -c "curl -i -X POST --url http://localhost:8001/consumers/AnotherTestUser/wsse_key/ --data 'key=another_test_user001&secret=qwerty'"
+	bash -c "curl -i -X POST --url http://localhost:8001/consumers/AnotherTestUser/wsse_key/ --data 'key=another_test_user002&secret=asdfgh'"
 
 wsse-key: ## Creates wsse key (test_user001) for test consumer (TestUser)
 	bash -c "curl -i -X POST --url http://localhost:8001/consumers/TestUser/wsse_key/ --data 'key=test_user001&secret=53cr37p455w0rd'"

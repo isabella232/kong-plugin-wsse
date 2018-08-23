@@ -5,7 +5,7 @@ local ConsumerDb = require "kong.plugins.wsse.consumer_db"
 local KeyDb = require "kong.plugins.wsse.key_db"
 local Logger = require "logger"
 local Wsse = require "kong.plugins.wsse.wsse_lib"
-local singletons = require "kong.singletons"
+local InitWorker = require "kong.plugins.wsse.init_worker"
 
 local WsseHandler = BasePlugin:extend()
 
@@ -42,52 +42,6 @@ local function already_authenticated_by_other_plugin(plugin_config, authenticate
     return anonymous_passthrough_is_enabled(plugin_config) and authenticated_credential ~= nil
 end
 
-local function iterate_pages(dao)
-    local page_size = 1000
-
-    local from = 1
-    local current_page = dao:find_page(nil, from, page_size)
-    local index_on_page = 1
-
-    return function()
-        while #current_page > 0 do
-            local element = current_page[index_on_page]
-
-            if element then
-                index_on_page = index_on_page + 1
-                return element
-            else
-                from = from + page_size
-                current_page = dao:find_page(nil, from, page_size)
-                index_on_page = 1
-            end
-        end
-
-        return nil
-    end
-end
-
-local function identity(entity)
-    return entity
-end
-
-local function cache_all_entities_in(dao, key_retriever)
-    for entity in iterate_pages(dao) do
-        local unique_identifier = key_retriever(entity)
-        local cache_key = dao:cache_key(unique_identifier)
-        
-        singletons.cache:get(cache_key, nil, identity, entity)
-    end
-end
-
-local function retrieve_id_from_consumer(consumer)
-    return consumer.id
-end
-
-local function retrieve_wsse_key_name(wsse_key)
-    return wsse_key.key
-end
-
 function WsseHandler:new()
     WsseHandler.super.new(self, "wsse")
 end
@@ -95,8 +49,7 @@ end
 function WsseHandler:init_worker()
     WsseHandler.super.init_worker(self)
 
-    cache_all_entities_in(singletons.dao.consumers, retrieve_id_from_consumer)
-    cache_all_entities_in(singletons.dao.wsse_keys, retrieve_wsse_key_name)
+    InitWorker.execute()
 end 
 
 function WsseHandler:access(conf)
