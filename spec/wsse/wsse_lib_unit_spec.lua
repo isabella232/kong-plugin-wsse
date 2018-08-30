@@ -79,13 +79,19 @@ describe("wsse lib", function()
             assert.has_no.errors(function() wsse:authenticate(header) end)
         end)
 
-        it("do not raise error when WSSE header parameters have extra spaces ", function()
+        it("should not raise error when WSSE header parameters have extra spaces ", function()
             local header = string.gsub(test_wsse_header, "%w+=", {
                 ["Username="] = "Username =",
                 ["PasswordDigest="] = "PasswordDigest= ",
                 ["Nonce="] = "Nonce=",
                 ["Created="] = "Created = ",
             })
+
+            assert.has_no.errors(function() wsse:authenticate(header) end)
+        end)
+
+        it("should not raise error when WSSE header parameters have extra spaces ", function()
+            local header = string.gsub(test_wsse_header, "UsernameToken%s+", "")
 
             assert.has_no.errors(function() wsse:authenticate(header) end)
         end)

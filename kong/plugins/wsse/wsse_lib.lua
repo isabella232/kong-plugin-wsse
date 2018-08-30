@@ -30,7 +30,7 @@ local function parse_field(header_string, field_name)
         return string.format("[%s%s]", letter:lower(), letter:upper())
     end)
 
-    return string.match(header_string, '[, ]' .. field_name_case_insensitive .. '%s*=%s*"(.-)"')
+    return string.match(header_string, '%f[%a]' .. field_name_case_insensitive .. '%f[%A]%s*=%s*"(.-)"')
 end
 
 local function ensure_header_is_present(header_string)
