@@ -86,7 +86,11 @@ function WsseHandler:access(conf)
 
             set_consumer(consumer, error_or_wsse_key)
         elseif anonymous_passthrough_is_enabled(conf) then
-            Logger.getInstance(ngx):logWarning({msg = "WSSE authentication failed, allowing anonymous passthrough.", ["x-wsse"] = wsse_header_string})
+            Logger.getInstance(ngx):logWarning({
+                ["msg"] = "WSSE authentication failed, allowing anonymous passthrough.",
+                ["x-wsse"] = wsse_header_string,
+                ["error"] = error_or_wsse_key
+            })
 
             local consumer_db = ConsumerDb()
             local consumer = consumer_db.find_by_id(conf.anonymous, true)
