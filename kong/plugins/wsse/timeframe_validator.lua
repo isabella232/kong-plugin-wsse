@@ -50,7 +50,12 @@ function TimeframeValidator:validate(timestamp, strict_timeframe_validation)
     end
 
     if (is_timestamp_within_threshold(timestamp, self.threshold_in_seconds)) then
-        Logger.getInstance(ngx):logWarning({msg = "Timeframe is invalid"})
+        Logger.getInstance(ngx):logWarning({
+            msg = "Timeframe is invalid",
+            current_time = date(os.time()),
+            time_from_wsse_header = date(timestamp)
+        })
+
         error({msg = "Timeframe is invalid."})
     end
 
