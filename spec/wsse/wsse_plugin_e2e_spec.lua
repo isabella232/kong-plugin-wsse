@@ -1,5 +1,6 @@
 local helpers = require "spec.helpers"
 local cjson = require "cjson"
+local uuid = require "uuid"
 local Wsse = require "kong.plugins.wsse.wsse_lib"
 local TestHelper = require "spec.test_helper"
 
@@ -316,6 +317,36 @@ describe("Plugin: wsse (access)", function()
         local body = cjson.decode(response)
         assert.is_equal("anonymous", body.headers["x-consumer-username"])
       end)
+
+      --it("should proxy the request to the upstream when header is present two times", function()
+      --  local header = Wsse.generate_header("test1", "test1")
+      --  local other_header = Wsse.generate_header("test1", "test1", nil, uuid())
+      --
+      --  assert(helpers.admin_client():send {
+      --    method = "POST",
+      --    path = "/consumers/" .. consumer.id .. "/wsse_key/",
+      --    body = {
+      --      key = 'test1',
+      --      secret = 'test1'
+      --    },
+      --    headers = {
+      --      ["Content-Type"] = "application/json"
+      --    }
+      --  })
+      --
+      --  local res = assert(helpers.proxy_client():send {
+      --    method = "GET",
+      --    path = "/request",
+      --    headers = {
+      --      ["Host"] = "test1.com",
+      --      ["X-WSSE"] = {header, other_header},
+      --    }
+      --  })
+      --
+      --  local response = assert.res_status(200, res)
+      --  local body = cjson.decode(response)
+      --  assert.is_equal("TestUser", body.headers["x-consumer-username"])
+      --end)
 
       it("should proxy the request with anonymous user if X-WSSE header is malformed", function()
         local res = assert(helpers.proxy_client():send {
