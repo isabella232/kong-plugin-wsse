@@ -50,7 +50,17 @@ function WsseHandler:init_worker()
     WsseHandler.super.init_worker(self)
 
     InitWorker.execute()
-end 
+end
+
+local function get_wsse_header_string(request_headers)
+    local wsse_header_content = request_headers["X-WSSE"]
+
+    if type(wsse_header_content) == "table" then
+        return wsse_header_content[1]
+    else
+        return wsse_header_content
+    end
+end
 
 function WsseHandler:access(conf)
     WsseHandler.super.access(self)
@@ -59,7 +69,7 @@ function WsseHandler:access(conf)
         return
     end
 
-    local wsse_header_string = ngx.req.get_headers()["X-WSSE"]
+    local wsse_header_string = get_wsse_header_string(ngx.req.get_headers())
 
     local successful_auth, error_or_wsse_key = pcall(
         authenticate,
