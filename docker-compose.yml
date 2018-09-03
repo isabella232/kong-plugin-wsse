@@ -26,6 +26,8 @@ services:
       - KONG_PROXY_ERROR_LOG=/proc/1/fd/2
       - LUAROCKS_API_KEY=${LUAROCKS_API_KEY}
       - KONG_NGINX_WORKER_PROCESSES=1
+      - SET_CONTAINER_TIMEZONE_ON_START=true
+      - CONTAINER_TIMEZONE=CET
     ports:
       - 8000:8000
       - 8001:8001
