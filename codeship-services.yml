@@ -21,6 +21,8 @@ kong:
     - KONG_ADMIN_ERROR_LOG=/proc/1/fd/2
     - KONG_PROXY_ACCESS_LOG=/proc/1/fd/1
     - KONG_PROXY_ERROR_LOG=/proc/1/fd/2
+    - SET_CONTAINER_TIMEZONE_ON_START=true
+    - CONTAINER_TIMEZONE=CET
   ports:
     - 8000
     - 8001
