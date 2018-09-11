@@ -47,6 +47,16 @@ describe("wsse timeframe validator", function()
             assert.True(timeframe_validator:validate(valid_timestamp))
         end)
 
+        it("returns true when datetime is valid local time without timezone info", function()
+            local valid_timestamp = date(false):addseconds(-10):fmt('${iso}')
+            assert.True(timeframe_validator:validate(valid_timestamp))
+        end)
+
+        it("returns true when datetime is valid time with timezone info", function()
+            local valid_timestamp = date(false):addseconds(-10):fmt('${iso}%z')
+            assert.True(timeframe_validator:validate(valid_timestamp))
+        end)
+
         it("returns true when created date is greater than actual date more then treshold but less than 1 hour plus treshold and actual date is daylight saving day", function()
             local valid_timestamp = date(2017,10,29,1,59,17):fmt('${iso}Z')
             local now = os.time{year = 2017, month = 10, day = 29, hour = 4, min = 1, sec = 35}

@@ -20,9 +20,21 @@ local function is_dst_transition()
     return yesterday.isdst ~= today.isdst
 end
 
+local function hasTimeZoneInfo(str)
+    if str:sub(-1)=="Z" then return true end
+
+    return str:find("([-+])(%d%d):?(%d?%d?)$") or false
+end
+
 local function is_timestamp_within_threshold(timestamp, threshold_in_seconds)
     local current_date_time = date(os.time())
     local given_timestamp = date(timestamp)
+    local hasTimeZoneInfo = hasTimeZoneInfo(timestamp)
+
+    if not hasTimeZoneInfo then
+        given_timestamp:toutc()
+    end
+
     local difference = math.abs(date.diff(given_timestamp, current_date_time):spanseconds())
 
     local dst_correction = 0
