@@ -52,6 +52,11 @@ describe("wsse timeframe validator", function()
             assert.True(timeframe_validator:validate(valid_timestamp))
         end)
 
+        it("returns true when datetime is valid local time without timezone info", function()
+            local valid_timestamp = date(false):addseconds(-10):fmt('${iso}.000%z')
+            assert.True(timeframe_validator:validate(valid_timestamp))
+        end)
+
         it("returns true when datetime is valid time with timezone info", function()
             local valid_timestamp = date(false):addseconds(-10):fmt('${iso}%z')
             assert.True(timeframe_validator:validate(valid_timestamp))
