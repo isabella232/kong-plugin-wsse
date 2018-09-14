@@ -62,7 +62,7 @@ local function parse_header(header_string)
 end
 
 local function generate_password_digest(nonce, created, secret)
-    return base64.encode(sha1(nonce .. created .. secret))
+    return sha1(nonce .. created .. secret)
 end
 
 local function validate_credentials(wsse_params, secret)
@@ -70,7 +70,7 @@ local function validate_credentials(wsse_params, secret)
     local created = wsse_params['created']
     local digest = generate_password_digest(nonce, created, secret)
 
-    if (digest ~= wsse_params['password_digest']) then
+    if digest ~= base64.decode(wsse_params['password_digest']) then
         Logger.getInstance(ngx):logWarning({msg = "Credentials are invalid."})
         error({msg = "Credentials are invalid."})
     end
@@ -122,9 +122,9 @@ function Wsse.generate_header(username, secret, created, nonce)
 
     created = created or os.date("!%Y-%m-%dT%TZ")
     nonce = nonce or uuid()
-    local digest = generate_password_digest(nonce,created, secret)
+    local encoded_digest = base64.encode(generate_password_digest(nonce,created, secret))
 
-    return string.format('UsernameToken Username="%s", PasswordDigest="%s", Nonce="%s", Created="%s"', username, digest, nonce, created)
+    return string.format('UsernameToken Username="%s", PasswordDigest="%s", Nonce="%s", Created="%s"', username, encoded_digest, nonce, created)
 end
 
 return Wsse
