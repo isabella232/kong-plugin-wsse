@@ -66,11 +66,19 @@ local function generate_password_digest(nonce, created, secret)
 end
 
 local function validate_credentials(wsse_params, secret)
-    local nonce = wsse_params['nonce']
-    local created = wsse_params['created']
-    local digest = generate_password_digest(nonce, created, secret)
+    local expected_digest = generate_password_digest(
+        wsse_params['nonce'],
+        wsse_params['created'],
+        secret
+    )
 
-    if digest ~= base64.decode(wsse_params['password_digest']) then
+    local encoded_digest = wsse_params['password_digest']
+
+    if encoded_digest then
+        encoded_digest = encoded_digest:gsub('^[^A-Za-z0-9+/=]+', '')
+    end
+
+    if expected_digest ~= base64.decode(encoded_digest) then
         Logger.getInstance(ngx):logWarning({msg = "Credentials are invalid."})
         error({msg = "Credentials are invalid."})
     end

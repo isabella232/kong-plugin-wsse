@@ -101,6 +101,12 @@ describe("wsse lib", function()
             assert.has_no.errors(function() wsse:authenticate(header) end)
         end)
 
+        it("should not raise error when WSSE header parameters have invalid charadters in the digest", function()
+            local header = string.gsub(test_wsse_header, 'PasswordDigest%s*=%s*"([^",]+)",', 'PasswordDigest=".%1",')
+
+            assert.has_no.errors(function() wsse:authenticate(header) end)
+        end)
+
         it("should raise error when API user could not be found", function ()
             assert.has.errors(function() wsse:authenticate('UsernameToken Username="non existing user", PasswordDigest="ODM3MmJiN2U2OTA2ZDhjMDlkYWExY2ZlNDYxODBjYTFmYTU0Y2I0Mg==", Nonce="4603fcf8f0fb2ea03a41ff007ea70d25", Created="2018-02-27T09:46:22Z"') end, {msg = "Credentials are invalid."})
         end)
