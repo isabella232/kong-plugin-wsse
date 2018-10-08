@@ -1,7 +1,6 @@
 local wsse_lib = require "kong.plugins.wsse.wsse_lib"
 local Logger = require "logger"
 
-
 describe("wsse lib", function()
 
     Logger.getInstance = function()
@@ -90,13 +89,13 @@ describe("wsse lib", function()
             assert.has_no.errors(function() wsse:authenticate(header) end)
         end)
 
-        it("should not raise error when WSSE header parameters have extra spaces ", function()
+        it("should not raise error when WSSE header parameters have extra spaces", function()
             local header = string.gsub(test_wsse_header, "UsernameToken%s+", "")
 
             assert.has_no.errors(function() wsse:authenticate(header) end)
         end)
 
-        it("should not raise error when WSSE header parameters have extra spaces ", function()
+        it("should not raise error when WSSE header parameters have extra padding", function()
             local header = string.gsub(test_wsse_header, 'PasswordDigest%s*=%s*"([^",]+)",', 'PasswordDigest="%1=======",')
 
             assert.has_no.errors(function() wsse:authenticate(header) end)
