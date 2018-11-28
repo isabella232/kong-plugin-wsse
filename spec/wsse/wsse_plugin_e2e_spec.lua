@@ -227,7 +227,8 @@ describe("Plugin: wsse (access)", function()
           }
         })
 
-        assert.res_status(401, res)
+        local body = assert.res_status(401, res)
+        assert.is_equal('{"message":"Credentials are invalid."}', body)
       end)
 
       context("when timeframe validation fails", function()
@@ -283,7 +284,8 @@ describe("Plugin: wsse (access)", function()
             }
           })
 
-          assert.res_status(401, res)
+          local body = assert.res_status(401, res)
+          assert.is_equal('{"message":"Timeframe is invalid."}', body)
         end)
       end)
 
