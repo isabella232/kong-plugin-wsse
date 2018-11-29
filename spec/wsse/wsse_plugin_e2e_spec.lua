@@ -30,6 +30,25 @@ describe("Plugin: wsse (access)", function()
     helpers.stop_kong(nil)
   end)
 
+  describe("config", function()
+    local service, plugin_config
+
+    before_each(function()
+      helpers.dao:truncate_tables()
+
+      service = get_response_body(TestHelper.setup_service("test-service", "http://mockbin:8080/request"))
+    end)
+
+    context("when config item is not given", function()
+      it("should set default config value for message template", function()
+        local plugin = get_response_body(TestHelper.setup_plugin_for_service(service.id, "wsse", {}))
+        local config = plugin.config
+
+        assert.is_equal(config.message_template, '{"messsage": "%s"}')
+      end)
+    end)
+  end)
+
   describe("Admin API", function()
 
     local service, route, plugin, consumer
