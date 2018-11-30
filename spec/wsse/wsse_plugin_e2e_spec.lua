@@ -72,7 +72,7 @@ describe("Plugin: wsse (access)", function()
 
                 assert.is_equal(config.timeframe_validation_treshhold_in_minutes, 5)
                 assert.is_equal(config.strict_key_matching, true)
-                assert.is_equal(config.message_template, '{"messsage": "%s"}')
+                assert.is_equal(config.message_template, '{"message": "%s"}')
                 assert.is_equal(config.status_code, 401)
             end)
         end)
