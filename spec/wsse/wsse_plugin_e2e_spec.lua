@@ -596,6 +596,35 @@ describe("Plugin: wsse (access)", function()
                 assert.res_status(400, res)
             end)
         end)
+
+        context("when message template is not default", function()
+            local service, route, plugin
+
+            before_each(function()
+                helpers.dao:truncate_tables()
+
+                service = get_response_body(TestHelper.setup_service('testservice', 'http://mockbin.org/request'))
+                route = get_response_body(TestHelper.setup_route_for_service(service.id, '/'))
+                plugin = get_response_body(TestHelper.setup_plugin_for_service(service.id, 'wsse', {
+                    message_template = '{"custom-message": "%s"}'
+                }))
+            end)
+
+            it("should return response message in the given format", function()
+                local res = assert(helpers.proxy_client():send {
+                    method = "GET",
+                    path = "/request"
+                })
+
+                local response = assert.res_status(401, res)
+                local body = cjson.decode(response)
+
+                assert.is_nil(body.message)
+                assert.not_nil(body['custom-message'])
+                assert.is_equal("WSSE authentication header is missing.", body['custom-message'])
+            end)
+
+        end)
     end)
 
 end)

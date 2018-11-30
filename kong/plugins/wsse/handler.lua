@@ -6,6 +6,7 @@ local KeyDb = require "kong.plugins.wsse.key_db"
 local Logger = require "logger"
 local Wsse = require "kong.plugins.wsse.wsse_lib"
 local InitWorker = require "kong.plugins.wsse.init_worker"
+local cjson = require "cjson"
 
 local WsseHandler = BasePlugin:extend()
 
@@ -62,6 +63,10 @@ local function get_wsse_header_string(request_headers)
     end
 end
 
+local function get_transformed_response(template, response_message)
+    return cjson.decode(string.format(template, response_message))
+end
+
 function WsseHandler:access(conf)
     WsseHandler.super.access(self)
 
@@ -101,7 +106,7 @@ function WsseHandler:access(conf)
 
             Logger.getInstance(ngx):logWarning({ status = status_code, msg = error_or_wsse_key.msg, ["x-wsse"] = wsse_header_string })
 
-            return responses.send(status_code, error_or_wsse_key.msg)
+            return responses.send(status_code, get_transformed_response(conf.message_template, error_or_wsse_key.msg))
         end
     end)
 
