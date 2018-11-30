@@ -97,9 +97,11 @@ function WsseHandler:access(conf)
 
             set_consumer(consumer)
         else
-            Logger.getInstance(ngx):logWarning({status = 401, msg = error_or_wsse_key.msg, ["x-wsse"] = wsse_header_string})
+            local status_code = conf.status_code
 
-            return responses.send(401, error_or_wsse_key.msg)
+            Logger.getInstance(ngx):logWarning({status = status_code, msg = error_or_wsse_key.msg, ["x-wsse"] = wsse_header_string})
+
+            return responses.send(status_code, error_or_wsse_key.msg)
         end
     end)
 

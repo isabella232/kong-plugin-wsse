@@ -40,11 +40,24 @@ describe("Plugin: wsse (access)", function()
     end)
 
     context("when config item is not given", function()
-      it("should set default config value for message template", function()
+      it("should set default config values", function()
         local plugin = get_response_body(TestHelper.setup_plugin_for_service(service.id, "wsse", {}))
         local config = plugin.config
 
+        assert.is_equal(config.timeframe_validation_treshhold_in_minutes, 5)
+        assert.is_equal(config.strict_key_matching, true)
         assert.is_equal(config.message_template, '{"messsage": "%s"}')
+        assert.is_equal(config.status_code, 401)
+      end)
+    end)
+
+    context("when given invalid HTTP status code for invalid auth", function()
+      it("should respond with bad request", function()
+        local plugin_response = TestHelper.setup_plugin_for_service(service.id, "wsse", {
+          status_code = 1000
+        })
+
+        assert.res_status(400, plugin_response)
       end)
     end)
   end)
@@ -534,6 +547,35 @@ describe("Plugin: wsse (access)", function()
       end)
 
     end)
+
+    context('when given status code for failed authentications', function()
+      local service, route, plugin, consumer
+
+      before_each(function()
+        helpers.dao:truncate_tables()
+
+        service = get_response_body(TestHelper.setup_service('testservice', 'http://mockbin.org/request'))
+        route = get_response_body(TestHelper.setup_route_for_service(service.id, '/'))
+
+        anonymous = get_response_body(TestHelper.setup_consumer('anonymous'))
+        plugin = get_response_body(TestHelper.setup_plugin_for_service(service.id, 'wsse', {
+          status_code = 400
+        }))
+
+        consumer = get_response_body(TestHelper.setup_consumer('TestUser'))
+      end)
+
+      it("should reject request with given HTTP status", function()
+        local res = assert(helpers.proxy_client():send {
+          method = "GET",
+          path = "/request"
+        })
+
+        assert.res_status(400, res)
+      end)
+
+    end)
+
   end)
 
 end)
