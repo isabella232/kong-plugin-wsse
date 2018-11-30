@@ -79,7 +79,7 @@ function WsseHandler:access(conf)
 
     local success, result = pcall(function()
         if successful_auth then
-            Logger.getInstance(ngx):logInfo({msg = "WSSE authentication was successful.", ["x-wsse"] = wsse_header_string})
+            Logger.getInstance(ngx):logInfo({ msg = "WSSE authentication was successful.", ["x-wsse"] = wsse_header_string })
 
             local consumer_db = ConsumerDb()
             local consumer = consumer_db.find_by_id(error_or_wsse_key.consumer_id)
@@ -99,7 +99,7 @@ function WsseHandler:access(conf)
         else
             local status_code = conf.status_code
 
-            Logger.getInstance(ngx):logWarning({status = status_code, msg = error_or_wsse_key.msg, ["x-wsse"] = wsse_header_string})
+            Logger.getInstance(ngx):logWarning({ status = status_code, msg = error_or_wsse_key.msg, ["x-wsse"] = wsse_header_string })
 
             return responses.send(status_code, error_or_wsse_key.msg)
         end
