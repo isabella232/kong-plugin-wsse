@@ -43,7 +43,7 @@ return {
         anonymous = { type = "string", default = nil, func = check_user },
         timeframe_validation_treshhold_in_minutes = { type = "number", default = 5 },
         strict_key_matching = { type = "boolean", default = true },
-        message_template = { type = "string", default = '{"messsage": "%s"}', func = check_message_template_validity },
+        message_template = { type = "string", default = '{"message": "%s"}', func = check_message_template_validity },
         status_code = { type = "number", default = 401, func = validate_http_status_code }
     }
 }
