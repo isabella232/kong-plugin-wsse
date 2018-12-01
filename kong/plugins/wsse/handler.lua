@@ -1,12 +1,14 @@
-local constants = require "kong.constants"
-local responses = require "kong.tools.responses"
 local BasePlugin = require "kong.plugins.base_plugin"
+local constants = require "kong.constants"
 local ConsumerDb = require "kong.plugins.wsse.consumer_db"
+local cjson = require "cjson"
+local InitWorker = require "kong.plugins.wsse.init_worker"
 local KeyDb = require "kong.plugins.wsse.key_db"
 local Logger = require "logger"
+local responses = require "kong.tools.responses"
+local PluginConfig = require "kong.plugins.wsse.plugin_config"
+local schema = require "kong.plugins.wsse.schema"
 local Wsse = require "kong.plugins.wsse.wsse_lib"
-local InitWorker = require "kong.plugins.wsse.init_worker"
-local cjson = require "cjson"
 
 local WsseHandler = BasePlugin:extend()
 
@@ -67,8 +69,10 @@ local function get_transformed_response(template, response_message)
     return cjson.decode(string.format(template, response_message))
 end
 
-function WsseHandler:access(conf)
+function WsseHandler:access(original_config)
     WsseHandler.super.access(self)
+
+    local conf = PluginConfig(schema):merge_onto_defaults(original_config)
 
     if already_authenticated_by_other_plugin(conf, ngx.ctx.authenticated_credential) then
         return
