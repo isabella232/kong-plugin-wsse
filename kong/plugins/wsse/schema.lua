@@ -1,7 +1,7 @@
 local utils = require "kong.tools.utils"
 local cjson = require "cjson"
 
-local function check_user(anonymous)
+local function ensure_valid_uuid_or_nil(anonymous)
     if anonymous == nil or utils.is_valid_uuid(anonymous) then
         return true
     end
@@ -27,7 +27,7 @@ local function is_object(message_template)
     return first_char == '{' and last_char == '}'
 end
 
-local function check_message_template_validity(message_template)
+local function ensure_message_template_is_valid_json(message_template)
     local ok = pcall(decode_json, message_template)
 
     if not ok or not is_object(message_template) then
@@ -40,10 +40,10 @@ end
 return {
     no_consumer = true,
     fields = {
-        anonymous = { type = "string", default = nil, func = check_user },
+        anonymous = { type = "string", default = nil, func = ensure_valid_uuid_or_nil },
         timeframe_validation_treshhold_in_minutes = { type = "number", default = 5 },
         strict_key_matching = { type = "boolean", default = true },
-        message_template = { type = "string", default = '{"message": "%s"}', func = check_message_template_validity },
+        message_template = { type = "string", default = '{"message": "%s"}', func = ensure_message_template_is_valid_json },
         status_code = { type = "number", default = 401, func = validate_http_status_code }
     }
 }
