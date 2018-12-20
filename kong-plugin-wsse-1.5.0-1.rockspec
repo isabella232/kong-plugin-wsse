@@ -23,6 +23,7 @@ dependencies = {
 build = {
   type = "builtin",
   modules = {
+    ["kong.plugins.wsse.access"] = "kong/plugins/wsse/access.lua",
     ["kong.plugins.wsse.api"] = "kong/plugins/wsse/api.lua",
     ["kong.plugins.wsse.cache_warmer"] = "kong/plugins/wsse/cache_warmer.lua",
     ["kong.plugins.wsse.consumer_db"] = "kong/plugins/wsse/consumer_db.lua",
