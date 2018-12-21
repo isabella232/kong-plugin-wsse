@@ -34,7 +34,7 @@ describe("wsse lib", function()
          end
     }
 
-    local wsse = wsse_lib:new(key_db, 5)
+    local wsse = wsse_lib(key_db, 5)
     local test_wsse_header = wsse_lib.generate_header('test', 'test')
 
     describe("#authenticate", function()

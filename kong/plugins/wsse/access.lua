@@ -22,14 +22,16 @@ local function anonymous_passthrough_is_enabled(plugin_config)
     return plugin_config.anonymous ~= nil
 end
 
-local function authenticate(auth_header, conf)
-    local authenticator = Wsse:new(KeyDb(conf.strict_key_matching), conf.timeframe_validation_treshhold_in_minutes)
+local function authenticate(auth_header, plugin_config)
+    local key_db = KeyDb(plugin_config.strict_key_matching)
+
+    local authenticator = Wsse(key_db, plugin_config.timeframe_validation_treshhold_in_minutes)
 
     return authenticator:authenticate(auth_header)
 end
 
-local function try_authenticate(auth_header, conf)
-    local success, result = pcall(authenticate, auth_header, conf)
+local function try_authenticate(auth_header, plugin_config)
+    local success, result = pcall(authenticate, auth_header, plugin_config)
 
     if success then
         return result
@@ -38,12 +40,12 @@ local function try_authenticate(auth_header, conf)
     return nil, result
 end
 
-local function find_anonymous_consumer(id)
-    return ConsumerDb().find_by_id(id, true)
+local function find_anonymous_consumer(plugin_config)
+    return ConsumerDb().find_anonymous(plugin_config.anonymous)
 end
 
-local function find_wsse_consumer(wsse_key)
-    return ConsumerDb().find_by_id(wsse_key.consumer_id)
+local function find_consumer_for(credentials)
+    return ConsumerDb().find_by_id(credentials.consumer_id)
 end
 
 local function set_consumer(consumer)
@@ -54,11 +56,11 @@ local function set_consumer(consumer)
     ngx.ctx.authenticated_consumer = consumer
 end
 
-local function set_authenticated_access(wsse_key)
-    ngx.req.set_header(constants.HEADERS.CREDENTIAL_USERNAME, wsse_key.key)
+local function set_authenticated_access(credentials)
+    ngx.req.set_header(constants.HEADERS.CREDENTIAL_USERNAME, credentials.key)
     ngx.req.set_header(constants.HEADERS.ANONYMOUS, nil)
 
-    ngx.ctx.authenticated_credential = wsse_key
+    ngx.ctx.authenticated_credential = credentials
 end
 
 local function set_anonymous_access()
@@ -72,16 +74,16 @@ end
 function Access.execute(conf)
     local wsse_header_value = get_wsse_header_string(ngx.req.get_headers())
 
-    local wsse_key, err = try_authenticate(wsse_header_value, conf)
+    local credentials, err = try_authenticate(wsse_header_value, conf)
 
-    if wsse_key then
+    if credentials then
         Logger.getInstance(ngx):logInfo({ msg = "WSSE authentication was successful.", ["x-wsse"] = wsse_header_value })
 
-        local consumer = find_wsse_consumer(wsse_key)
+        local consumer = find_consumer_for(credentials)
 
         set_consumer(consumer)
 
-        set_authenticated_access(wsse_key)
+        set_authenticated_access(credentials)
 
         return
     end
@@ -93,7 +95,7 @@ function Access.execute(conf)
             ["error"] = err
         })
 
-        local consumer = find_anonymous_consumer(conf.anonymous)
+        local consumer = find_anonymous_consumer(conf)
 
         set_consumer(consumer)
 

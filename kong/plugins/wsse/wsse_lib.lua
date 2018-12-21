@@ -1,27 +1,41 @@
+local Object = require "classic"
 local base64 = require "base64"
 local sha1 = require "sha1"
 local uuid = require "uuid"
-local TimeframeValidator = require "kong.plugins.wsse.timeframe_validator"
 local Logger = require "logger"
+local TimeframeValidator = require "kong.plugins.wsse.timeframe_validator"
 
-local Wsse = {}
+local Wsse = Object:extend()
+
+local function throw_error_and_log(message)
+    Logger.getInstance(ngx):logWarning({ msg = message })
+    error({ msg = message })
+end
+
+local param_to_field_name = {
+    username = "Username",
+    password_digest = "PasswordDigest",
+    nonce = "Nonce",
+    created = "Created"
+}
+
+local function ensure_param_exists(wsse_params, param_name)
+    if not wsse_params[param_name] then
+        local msg = "The " .. param_to_field_name[param_name] .. " field is missing from WSSE authentication header."
+        throw_error_and_log(msg)
+    end
+end
+
+local required_params = {
+    "username",
+    "password_digest",
+    "nonce",
+    "created"
+}
 
 local function check_required_params(wsse_params)
-    if wsse_params["username"] == nil then
-        Logger.getInstance(ngx):logWarning({msg = "The Username field is missing from WSSE authentication header."})
-        error({msg = "The Username field is missing from WSSE authentication header."})
-    end
-    if wsse_params["password_digest"] == nil then
-        Logger.getInstance(ngx):logWarning({msg = "The PasswordDigest field is missing from WSSE authentication header."})
-        error({msg = "The PasswordDigest field is missing from WSSE authentication header."})
-    end
-    if wsse_params["nonce"] == nil then
-        Logger.getInstance(ngx):logWarning({msg = "The Nonce field is missing from WSSE authentication header."})
-        error({msg = "The Nonce field is missing from WSSE authentication header."})
-    end
-    if wsse_params["created"] == nil then
-        Logger.getInstance(ngx):logWarning({msg = "The Created field is missing from WSSE authentication header."})
-        error({msg = "The Created field is missing from WSSE authentication header."})
+    for _, param_name in ipairs(required_params) do
+        ensure_param_exists(wsse_params, param_name)
     end
 end
 
@@ -35,15 +49,13 @@ end
 
 local function ensure_header_is_present(header_string)
     if not header_string then
-        Logger.getInstance(ngx):logWarning({msg = "WSSE authentication header is missing."})
-        error({msg = "WSSE authentication header is missing."})
+        throw_error_and_log("WSSE authentication header is missing.")
     end
 end
 
 local function ensure_header_is_not_empty(header_string)
     if header_string == "" then
-        Logger.getInstance(ngx):logWarning({msg = "WSSE authentication header is empty."})
-        error({msg = "WSSE authentication header is empty."})
+        throw_error_and_log("WSSE authentication header is empty.")
     end
 end
 
@@ -52,10 +64,10 @@ local function parse_header(header_string)
     ensure_header_is_not_empty(header_string)
 
     local wsse_params = {
-        username = parse_field(header_string, 'Username'),
-        password_digest = parse_field(header_string, 'PasswordDigest'),
-        nonce = parse_field(header_string, 'Nonce'),
-        created = parse_field(header_string, 'Created')
+        username = parse_field(header_string, "Username"),
+        password_digest = parse_field(header_string, "PasswordDigest"),
+        nonce = parse_field(header_string, "Nonce"),
+        created = parse_field(header_string, "Created")
     }
 
     return wsse_params
@@ -67,34 +79,27 @@ end
 
 local function validate_credentials(wsse_params, secret)
     local expected_digest = generate_password_digest(
-        wsse_params['nonce'],
-        wsse_params['created'],
+        wsse_params.nonce,
+        wsse_params.created,
         secret
     )
 
-    local encoded_digest = wsse_params['password_digest']
+    local encoded_digest = wsse_params.password_digest
 
     if encoded_digest then
-        encoded_digest = encoded_digest:gsub('^[^A-Za-z0-9+/=]+', '')
+        encoded_digest = encoded_digest:gsub("^[^A-Za-z0-9+/=]+", "")
     end
 
     if expected_digest ~= base64.decode(encoded_digest) then
-        Logger.getInstance(ngx):logWarning({msg = "Credentials are invalid."})
-        error({msg = "Credentials are invalid."})
+        throw_error_and_log("Credentials are invalid.")
     end
 end
 
 function Wsse:new(key_db, timeframe_validation_treshhold_in_minutes)
-    self.__index = self
-
-    local obj = {}
-    setmetatable(obj, self)
     local timeframe_validation_treshhold_in_seconds = timeframe_validation_treshhold_in_minutes * 60 or 300
 
-    obj.key_db = key_db
-    obj.timeframe_validator = TimeframeValidator(timeframe_validation_treshhold_in_seconds)
-
-    return obj
+    self.key_db = key_db
+    self.timeframe_validator = TimeframeValidator(timeframe_validation_treshhold_in_seconds)
 end
 
 function Wsse:authenticate(header_string)
@@ -104,15 +109,15 @@ function Wsse:authenticate(header_string)
     local wsse_params = parse_header(header_string)
 
     check_required_params(wsse_params)
+
     local status, err = pcall(function()
-        wsse_key = self.key_db:find_by_username(wsse_params['username'])
-        strict_timeframe_validation = wsse_key['strict_timeframe_validation']
-        secret = wsse_key['secret']
+        wsse_key = self.key_db:find_by_username(wsse_params.username)
+        strict_timeframe_validation = wsse_key.strict_timeframe_validation
+        secret = wsse_key.secret
     end)
 
     if not status then
-        Logger.getInstance(ngx):logWarning({msg = "Credentials are invalid."})
-        error({msg = "Credentials are invalid."})
+        throw_error_and_log("Credentials are invalid.")
     end
 
     validate_credentials(wsse_params, secret)
@@ -123,14 +128,14 @@ function Wsse:authenticate(header_string)
 end
 
 function Wsse.generate_header(username, secret, created, nonce)
-    if username == nil or secret == nil then
-        Logger.getInstance(ngx):logWarning({msg = "Credentials are invalid."})
-        error({msg = "Username and secret are required."})
+    if not username or not secret then
+        throw_error_and_log("Username and secret are required.")
     end
 
     created = created or os.date("!%Y-%m-%dT%TZ")
     nonce = nonce or uuid()
-    local encoded_digest = base64.encode(generate_password_digest(nonce,created, secret))
+
+    local encoded_digest = base64.encode(generate_password_digest(nonce, created, secret))
 
     return string.format('UsernameToken Username="%s", PasswordDigest="%s", Nonce="%s", Created="%s"', username, encoded_digest, nonce, created)
 end

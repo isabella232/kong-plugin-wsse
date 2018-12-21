@@ -31,7 +31,7 @@ describe("Plugin: wsse (access)", function()
     end)
 
     describe("config", function()
-        local service, plugin_config
+        local service
 
         before_each(function()
             helpers.dao:truncate_tables()
