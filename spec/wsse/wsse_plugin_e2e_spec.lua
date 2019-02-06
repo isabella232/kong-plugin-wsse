@@ -10,7 +10,7 @@ local function get_response_body(response)
 end
 
 local function setup_test_env()
-    helpers.dao:truncate_tables()
+    helpers.db:truncate()
 
     local service = get_response_body(TestHelper.setup_service('testservice', 'http://mockbin:8080/request'))
     local route = get_response_body(TestHelper.setup_route_for_service(service.id, '/'))
@@ -34,7 +34,7 @@ describe("Plugin: wsse (access)", function()
         local service
 
         before_each(function()
-            helpers.dao:truncate_tables()
+            helpers.db:truncate()
 
             service = get_response_body(TestHelper.setup_service("test-service", "http://mockbin:8080/request"))
         end)
@@ -353,7 +353,7 @@ describe("Plugin: wsse (access)", function()
             local service, route, anonymous, plugin, consumer
 
             before_each(function()
-                helpers.dao:truncate_tables()
+                helpers.db:truncate()
 
                 service = get_response_body(TestHelper.setup_service('testservice', 'http://mockbin.org/request'))
                 route = get_response_body(TestHelper.setup_route_for_service(service.id, '/'))
@@ -534,7 +534,7 @@ describe("Plugin: wsse (access)", function()
             local service, route, anonymous, plugin, consumer
 
             before_each(function()
-                helpers.dao:truncate_tables()
+                helpers.db:truncate()
 
                 service = get_response_body(TestHelper.setup_service('testservice', 'http://mockbin.org/request'))
                 route = get_response_body(TestHelper.setup_route_for_service(service.id, '/'))
@@ -578,7 +578,7 @@ describe("Plugin: wsse (access)", function()
             local service, route, plugin
 
             before_each(function()
-                helpers.dao:truncate_tables()
+                helpers.db:truncate()
 
                 service = get_response_body(TestHelper.setup_service('testservice', 'http://mockbin.org/request'))
                 route = get_response_body(TestHelper.setup_route_for_service(service.id, '/'))
@@ -601,7 +601,7 @@ describe("Plugin: wsse (access)", function()
             local service, route, plugin
 
             before_each(function()
-                helpers.dao:truncate_tables()
+                helpers.db:truncate()
 
                 service = get_response_body(TestHelper.setup_service('testservice', 'http://mockbin.org/request'))
                 route = get_response_body(TestHelper.setup_route_for_service(service.id, '/'))
