@@ -23,7 +23,7 @@ end
 describe("Plugin: wsse (access)", function()
 
     setup(function()
-        helpers.start_kong({ custom_plugins = 'wsse' })
+        helpers.start_kong({ plugins = 'wsse' })
     end)
 
     teardown(function()
