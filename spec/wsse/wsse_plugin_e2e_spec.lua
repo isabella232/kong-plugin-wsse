@@ -27,7 +27,7 @@ describe("Plugin: wsse (access)", function()
     end)
 
     teardown(function()
-        helpers.stop_kong(nil)
+        helpers.stop_kong()
     end)
 
     describe("config", function()
@@ -51,10 +51,10 @@ describe("Plugin: wsse (access)", function()
 
             local test_cases = {'{"almafa": %s}', '""', '[{"almafa": "%s"}]'}
 
-            for _, testCase in ipairs(test_cases) do
+            for _, test_template in ipairs(test_cases) do
                 it("should throw error when message_template is not valid JSON object", function()
                     local plugin_response = TestHelper.setup_plugin_for_service(service.id, "wsse", {
-                        message_template = testCase
+                        message_template = test_template
                     })
 
                     local body = assert.res_status(400, plugin_response)
