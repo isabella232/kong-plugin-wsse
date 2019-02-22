@@ -77,6 +77,24 @@ local function generate_password_digest(nonce, created, secret)
     return sha1(nonce .. created .. secret)
 end
 
+local function fix_base64_character_set(encoded_digest)
+    return encoded_digest:gsub("^[^A-Za-z0-9+/=]+", "")
+end
+
+local function count_missing_padding(encoded_digest)
+    return 4 - (#encoded_digest % 4)
+end
+
+local function pad_base64_string(encoded_digest)
+    local missing_padding_amount = count_missing_padding(encoded_digest)
+
+    if missing_padding_amount > 0 then
+        encoded_digest = encoded_digest .. string.rep("=", missing_padding_amount)
+    end
+
+    return encoded_digest
+end
+
 local function validate_credentials(wsse_params, secret)
     local expected_digest = generate_password_digest(
         wsse_params.nonce,
@@ -87,7 +105,8 @@ local function validate_credentials(wsse_params, secret)
     local encoded_digest = wsse_params.password_digest
 
     if encoded_digest then
-        encoded_digest = encoded_digest:gsub("^[^A-Za-z0-9+/=]+", "")
+        encoded_digest = fix_base64_character_set(encoded_digest)
+        encoded_digest = pad_base64_string(encoded_digest)
     end
 
     if expected_digest ~= base64.decode(encoded_digest) then
@@ -103,26 +122,23 @@ function Wsse:new(key_db, timeframe_validation_treshhold_in_minutes)
 end
 
 function Wsse:authenticate(header_string)
-    local wsse_key
-    local secret
-    local strict_timeframe_validation
     local wsse_params = parse_header(header_string)
 
     check_required_params(wsse_params)
 
-    local status, err = pcall(function()
-        wsse_key = self.key_db:find_by_username(wsse_params.username)
-        strict_timeframe_validation = wsse_key.strict_timeframe_validation
-        secret = wsse_key.secret
+    local success, result = pcall(function()
+        return self.key_db:find_by_username(wsse_params.username)
     end)
 
-    if not status then
+    if not success then
         throw_error_and_log("Credentials are invalid.")
     end
 
-    validate_credentials(wsse_params, secret)
+    local wsse_key = result
 
-    self.timeframe_validator:validate(wsse_params.created, strict_timeframe_validation)
+    validate_credentials(wsse_params, wsse_key.secret)
+
+    self.timeframe_validator:validate(wsse_params.created, wsse_key.strict_timeframe_validation)
 
     return wsse_key
 end

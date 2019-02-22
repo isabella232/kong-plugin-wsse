@@ -25,6 +25,9 @@ describe("wsse lib", function()
                 }
             elseif username == "test2" then
                 return {
+                    id = 2,
+                    consumer_id = 2,
+                    key = "test2",
                     secret = "test2",
                     strict_timeframe_validation = false
                 }
@@ -107,7 +110,7 @@ describe("wsse lib", function()
             assert.has_no.errors(function() wsse:authenticate(header) end)
         end)
 
-        it("should not raise error when WSSE header parameters have invalid charadters in the digest", function()
+        it("should not raise error when WSSE header parameters have invalid characters in the digest", function()
             local header = string.gsub(test_wsse_header, 'PasswordDigest%s*=%s*"([^",]+)",', 'PasswordDigest=".%1",')
 
             assert.has_no.errors(function() wsse:authenticate(header) end)
@@ -142,6 +145,19 @@ describe("wsse lib", function()
             local wsse_key = wsse:authenticate(test_wsse_header)
 
             assert.are.same(expected_key, wsse_key)
+        end)
+
+        it("should return wsse key when base64 padding is missing", function()
+            local wsse_header = wsse_lib.generate_header("test2", "test2", "2019-02-22T13:09:00Z", "110118")
+            local digest_without_padding = wsse_header:match('PasswordDigest="(.-)"'):gsub("=", "")
+
+            assert.is_true(#digest_without_padding % 4 > 0)
+
+            wsse_header = wsse_header:gsub('PasswordDigest="(.-)"', 'PasswordDigest="' .. digest_without_padding .. '"')
+
+            local wsse_key = wsse:authenticate(wsse_header)
+
+            assert.are.equal("test2", wsse_key.key)
         end)
 
     end)
