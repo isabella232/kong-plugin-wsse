@@ -38,12 +38,14 @@ local function check_required_params(wsse_params)
     end
 end
 
-local function parse_field(header_string, field_name)
-    local field_name_case_insensitive = field_name:gsub("(.)", function(letter)
-        return string.format("[%s%s]", letter:lower(), letter:upper())
-    end)
+local function pattern_match_any_casing(letter)
+    return string.format("[%s%s]", letter:lower(), letter:upper())
+end
 
-    return string.match(header_string, field_name_case_insensitive .. '%f[%A]%s*=%s*"(.-)"')
+local function parse_field(header_string, field_name)
+    local field_name_case_insensitive = field_name:gsub("(.)", pattern_match_any_casing)
+
+    return string.match(header_string, field_name_case_insensitive .. '%s*=%s*"(.-)"')
 end
 
 local function ensure_header_is_present(header_string)
