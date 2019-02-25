@@ -1,7 +1,6 @@
 local Object = require "classic"
 local base64 = require "base64"
 local sha1 = require "sha1"
-local uuid = require "uuid"
 local Logger = require "logger"
 local TimeframeValidator = require "kong.plugins.wsse.timeframe_validator"
 
@@ -143,13 +142,12 @@ function Wsse:authenticate(header_string)
     return wsse_key
 end
 
-function Wsse.generate_header(username, secret, created, nonce)
-    if not username or not secret then
-        throw_error_and_log("Username and secret are required.")
+function Wsse.generate_header(username, secret, nonce, created)
+    if not username or not secret or not nonce then
+        throw_error_and_log("Username, secret, and nonce are required.")
     end
 
     created = created or os.date("!%Y-%m-%dT%TZ")
-    nonce = nonce or uuid()
 
     local encoded_digest = base64.encode(generate_password_digest(nonce, created, secret))
 

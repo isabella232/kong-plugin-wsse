@@ -1,8 +1,8 @@
-local helpers = require "spec.helpers"
 local cjson = require "cjson"
 local uuid = require "uuid"
-local Wsse = require "kong.plugins.wsse.wsse_lib"
+local helpers = require "spec.helpers"
 local TestHelper = require "spec.test_helper"
+local Wsse = require "kong.plugins.wsse.wsse_lib"
 
 local function get_response_body(response)
     local body = assert.res_status(201, response)
@@ -238,7 +238,7 @@ describe("Plugin: wsse (access)", function()
             end)
 
             it("should proxy the request to the upstream on successful auth", function()
-                local header = Wsse.generate_header("test", "test")
+                local header = Wsse.generate_header("test", "test", uuid())
 
                 assert(helpers.admin_client():send {
                     method = "POST",
@@ -291,7 +291,7 @@ describe("Plugin: wsse (access)", function()
 
             context("when timeframe validation fails", function()
                 it("should proxy the request to the upstream if strict validation was disabled", function ()
-                    local header = Wsse.generate_header("test2", "test2", "2017-02-27T09:46:22Z")
+                    local header = Wsse.generate_header("test2", "test2", uuid(), "2017-02-27T09:46:22Z")
 
                     assert(helpers.admin_client():send {
                         method = "POST",
@@ -319,7 +319,7 @@ describe("Plugin: wsse (access)", function()
                 end)
 
                 it("should reject the request with HTTP 401 when strict validation is on", function ()
-                    local header = Wsse.generate_header("test2", "test2", "2017-02-27T09:46:22Z")
+                    local header = Wsse.generate_header("test2", "test2", uuid(), "2017-02-27T09:46:22Z")
 
                     assert(helpers.admin_client():send {
                         method = "POST",
@@ -379,8 +379,8 @@ describe("Plugin: wsse (access)", function()
             end)
 
             it("should proxy the request to the upstream when header is present two times", function()
-                local header = Wsse.generate_header("test1", "test1")
-                local other_header = Wsse.generate_header("test1", "test1", nil, uuid())
+                local header = Wsse.generate_header("test1", "test1", uuid())
+                local other_header = Wsse.generate_header("test1", "test1", uuid())
 
                 assert(helpers.admin_client():send {
                     method = "POST",
@@ -424,7 +424,7 @@ describe("Plugin: wsse (access)", function()
             end)
 
             it("should proxy the request to the upstream on successful auth", function()
-                local header = Wsse.generate_header("test", "test")
+                local header = Wsse.generate_header("test", "test", uuid())
 
                 assert(helpers.admin_client():send {
                     method = "POST",
@@ -469,7 +469,7 @@ describe("Plugin: wsse (access)", function()
 
             context("when timeframe is invalid", function()
                 it("should proxy the request to the upstream if strict validation was disabled", function ()
-                    local header = Wsse.generate_header("test2", "test2", "2017-02-27T09:46:22Z")
+                    local header = Wsse.generate_header("test2", "test2", uuid(), "2017-02-27T09:46:22Z")
 
                     assert(helpers.admin_client():send {
                         method = "POST",
@@ -499,7 +499,7 @@ describe("Plugin: wsse (access)", function()
                 end)
 
                 it("should proxy the request with anonymous when strict validation is on", function ()
-                    local header = Wsse.generate_header("test2", "test2", "2017-02-27T09:46:22Z")
+                    local header = Wsse.generate_header("test2", "test2", uuid(), "2017-02-27T09:46:22Z")
 
                     assert(helpers.admin_client():send {
                         method = "POST",
@@ -546,7 +546,7 @@ describe("Plugin: wsse (access)", function()
             end)
 
             it('should respond with 200 when wsse key casing is different', function()
-                local header = Wsse.generate_header("testci", "test")
+                local header = Wsse.generate_header("testci", "test", uuid())
 
                 assert(helpers.admin_client():send {
                     method = "POST",

@@ -1,5 +1,6 @@
-local wsse_lib = require "kong.plugins.wsse.wsse_lib"
+local uuid = require "uuid"
 local Logger = require "logger"
+local wsse_lib = require "kong.plugins.wsse.wsse_lib"
 
 describe("wsse lib", function()
 
@@ -12,7 +13,7 @@ describe("wsse lib", function()
     local key_db = {
         find_by_username = function(self, username)
             if username == nil then
-                error({msg = "Username is required."})
+                error({ msg = "Username is required." })
             end
 
             if username == "test" then
@@ -38,12 +39,12 @@ describe("wsse lib", function()
     }
 
     local wsse = wsse_lib(key_db, 5)
-    local test_wsse_header = wsse_lib.generate_header('test', 'test')
+    local test_wsse_header = wsse_lib.generate_header('test', 'test', uuid())
 
     describe("#authenticate", function()
 
         it("raises error when WSSE header is an empty string", function()
-            assert.has_error(function() wsse:authenticate("") end, {msg = "WSSE authentication header is empty."})
+            assert.has_error(function() wsse:authenticate("") end, { msg = "WSSE authentication header is empty." })
         end)
 
         it("does not raise error when WSSE header is a valid wsse header string", function()
@@ -52,22 +53,22 @@ describe("wsse lib", function()
 
         it("raises error when PasswordDigest is missing from WSSE header", function()
             local partial_test_wsse_header = string.gsub(test_wsse_header, "PasswordDigest=\"[^,]+\",", "")
-            assert.has_error(function() wsse:authenticate(partial_test_wsse_header) end, {msg = "The PasswordDigest field is missing from WSSE authentication header."})
+            assert.has_error(function() wsse:authenticate(partial_test_wsse_header) end, { msg = "The PasswordDigest field is missing from WSSE authentication header." })
         end)
 
         it("raises error when Username is missing from WSSE header", function()
             local partial_test_wsse_header = string.gsub(test_wsse_header, "Username=\"[^,]+\",", "")
-            assert.has_error(function() wsse:authenticate(partial_test_wsse_header) end, {msg = "The Username field is missing from WSSE authentication header."})
+            assert.has_error(function() wsse:authenticate(partial_test_wsse_header) end, { msg = "The Username field is missing from WSSE authentication header." })
         end)
 
         it("raises error when Nonce is missing from WSSE header", function()
             local partial_test_wsse_header = string.gsub(test_wsse_header, "Nonce=\"[^,]+\",", "")
-            assert.has_error(function() wsse:authenticate(partial_test_wsse_header) end, {msg = "The Nonce field is missing from WSSE authentication header."})
+            assert.has_error(function() wsse:authenticate(partial_test_wsse_header) end, { msg = "The Nonce field is missing from WSSE authentication header." })
         end)
 
         it("raises error when Created is missing from WSSE header", function()
             local partial_test_wsse_header = string.gsub(test_wsse_header, "Created=\"[^,]+\"", "")
-            assert.has_error(function() wsse:authenticate(partial_test_wsse_header) end, {msg = "The Created field is missing from WSSE authentication header."})
+            assert.has_error(function() wsse:authenticate(partial_test_wsse_header) end, { msg = "The Created field is missing from WSSE authentication header." })
         end)
 
         it("does not raise error when WSSE header parameters have random casing ", function()
@@ -129,7 +130,7 @@ describe("wsse lib", function()
         end)
 
         it("should not raise error when timeframe is invalid and strict_timeframe_validation is false", function ()
-            local test_wsse_header_non_strict = wsse_lib.generate_header('test2', 'test2', '2018-02-27T09:46:22Z')
+            local test_wsse_header_non_strict = wsse_lib.generate_header('test2', 'test2', uuid(), '2018-02-27T09:46:22Z')
             assert.has_no.errors(function() wsse:authenticate(test_wsse_header_non_strict) end)
         end)
 
@@ -148,7 +149,7 @@ describe("wsse lib", function()
         end)
 
         it("should return wsse key when base64 padding is missing", function()
-            local wsse_header = wsse_lib.generate_header("test2", "test2", "2019-02-22T13:09:00Z", "110118")
+            local wsse_header = wsse_lib.generate_header("test2", "test2", "110118", "2019-02-22T13:09:00Z")
             local digest_without_padding = wsse_header:match('PasswordDigest="(.-)"'):gsub("=", "")
 
             assert.is_true(#digest_without_padding % 4 > 0)
@@ -165,11 +166,11 @@ describe("wsse lib", function()
     describe("#generate_header", function()
 
         it("raises error when no argument was given", function()
-            assert.has_error(function() wsse_lib.generate_header() end, {msg = "Username and secret are required."})
+            assert.has_error(wsse_lib.generate_header, { msg = "Username, secret, and nonce are required." })
         end)
 
         it("returns with a generated wsse header string when username, secret, created, and nonce was given", function()
-            local generated_wsse_header = wsse_lib.generate_header('test', 'test', '2018-03-01T09:15:38Z', '44ab5733c8d764bc2712c62f77abeeec')
+            local generated_wsse_header = wsse_lib.generate_header('test', 'test', '44ab5733c8d764bc2712c62f77abeeec','2018-03-01T09:15:38Z')
             local excepted_wsse_header = 'UsernameToken Username="test", PasswordDigest="NTY0MzllMzJlMzM3NTFiNzQ2ZWVkMGEzZDRjNGQwODZiM2U2ZWJlYQ==", Nonce="44ab5733c8d764bc2712c62f77abeeec", Created="2018-03-01T09:15:38Z"'
 
             assert.are.equal(excepted_wsse_header, generated_wsse_header)
