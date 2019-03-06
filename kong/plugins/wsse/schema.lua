@@ -41,7 +41,7 @@ return {
     no_consumer = true,
     fields = {
         anonymous = { type = "string", default = nil, func = ensure_valid_uuid_or_nil },
-        timeframe_validation_treshhold_in_minutes = { type = "number", default = 5 },
+        timeframe_validation_threshold_in_minutes = { type = "number", default = 5 },
         strict_key_matching = { type = "boolean", default = true },
         message_template = { type = "string", default = '{"message": "%s"}', func = ensure_message_template_is_valid_json },
         status_code = { type = "number", default = 401, func = validate_http_status_code }

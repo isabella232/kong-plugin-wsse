@@ -70,7 +70,7 @@ describe("Plugin: wsse (access)", function()
                 local plugin = get_response_body(TestHelper.setup_plugin_for_service(service.id, "wsse", {}))
                 local config = plugin.config
 
-                assert.is_equal(config.timeframe_validation_treshhold_in_minutes, 5)
+                assert.is_equal(config.timeframe_validation_threshold_in_minutes, 5)
                 assert.is_equal(config.strict_key_matching, true)
                 assert.is_equal(config.message_template, '{"message": "%s"}')
                 assert.is_equal(config.status_code, 401)

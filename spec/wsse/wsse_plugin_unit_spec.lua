@@ -7,7 +7,7 @@ describe("wsse plugin", function()
     local old_ngx = _G.ngx
     local mock_config= {
         anonymous = 'anonym123',
-        timeframe_validation_treshhold_in_minutes = 5
+        timeframe_validation_threshold_in_minutes = 5
     }
     local handler
 
