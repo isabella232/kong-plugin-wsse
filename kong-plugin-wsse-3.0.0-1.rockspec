@@ -14,7 +14,7 @@ dependencies = {
   "lua >= 5.1",
   "date 2.1.2-1",
   "lbase64 20120820-1",
-  "sha1 0.5-1",
+  "fly-bgcrypto-sha == 0.0.1-1",
   "classic 0.1.0-1",
   "kong-lib-logger >= 0.3.0-1"
 }

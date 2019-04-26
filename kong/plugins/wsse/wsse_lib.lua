@@ -1,6 +1,6 @@
 local Object = require "classic"
 local base64 = require "base64"
-local sha1 = require "sha1"
+local sha1 = require "bgcrypto.sha1"
 local Logger = require "logger"
 local TimeframeValidator = require "kong.plugins.wsse.timeframe_validator"
 
@@ -75,7 +75,7 @@ local function parse_header(header_string)
 end
 
 local function generate_password_digest(nonce, created, secret)
-    return sha1(nonce .. created .. secret)
+    return sha1.digest(nonce .. created .. secret, true)
 end
 
 local function fix_base64_character_set(encoded_digest)
