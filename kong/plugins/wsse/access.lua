@@ -94,7 +94,7 @@ function Access.execute(conf)
         Logger.getInstance(ngx):logWarning({
             ["msg"] = "WSSE authentication failed, allowing anonymous passthrough.",
             ["x-wsse"] = wsse_header_value,
-            ["error"] = err
+            ["error"] = type(err) == "table" and err or { msg = err }
         })
 
         local consumer = find_anonymous_consumer(conf)
