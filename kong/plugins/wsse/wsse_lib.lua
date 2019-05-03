@@ -116,7 +116,7 @@ local function validate_credentials(wsse_params, secret)
 end
 
 function Wsse:new(key_db, timeframe_validation_threshold_in_minutes)
-    local timeframe_validation_threshold_in_seconds = timeframe_validation_threshold_in_minutes * 60 or 300
+    local timeframe_validation_threshold_in_seconds = (timeframe_validation_threshold_in_minutes or 5) * 60
 
     self.key_db = key_db
     self.timeframe_validator = TimeframeValidator(timeframe_validation_threshold_in_seconds)
