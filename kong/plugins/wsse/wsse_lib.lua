@@ -140,7 +140,18 @@ function Wsse:authenticate(header_string)
     validate_credentials(wsse_params, wsse_key.secret)
 
     if wsse_key.strict_timeframe_validation then
-        self.timeframe_validator:validate(wsse_params.created)
+        local is_valid, err = self.timeframe_validator:validate(wsse_params.created)
+
+        if not is_valid then
+            Logger.getInstance(ngx):logWarning({
+                msg = "Timeframe is invalid.",
+                error = {
+                    msg = err
+                }
+            })
+
+            error({ msg = "Timeframe is invalid." })
+        end
     end
 
     return wsse_key

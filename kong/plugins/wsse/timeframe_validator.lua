@@ -1,8 +1,11 @@
 local Object = require "classic"
 local date = require "date"
-local Logger = require "logger"
 
 local TimeframeValidator = Object:extend()
+
+function TimeframeValidator:new(threshold_in_seconds)
+    self.threshold_in_seconds = threshold_in_seconds
+end
 
 local function is_valid_timestamp_format(timestamp)
     local success = pcall(date, timestamp)
@@ -51,24 +54,16 @@ local function is_timestamp_within_threshold(timestamp, threshold_in_seconds)
     return difference > threshold_in_seconds + dst_correction
 end
 
-function TimeframeValidator:new(threshold_in_seconds)
-    self.threshold_in_seconds = threshold_in_seconds or 300
-end
-
 function TimeframeValidator:validate(timestamp)
     if not is_valid_timestamp_format(timestamp) then
-        Logger.getInstance(ngx):logWarning({ msg = "Timeframe is invalid" })
-        error({ msg = "Timeframe is invalid." })
+        return false, "Invalid timestamp format"
     end
 
     if is_timestamp_within_threshold(timestamp, self.threshold_in_seconds) then
-        Logger.getInstance(ngx):logWarning({
-            msg = "Timeframe is invalid",
-            current_time = tostring(date(os.time())),
-            time_from_wsse_header = tostring(date(timestamp))
-        })
+        local now = date(os.time()):fmt("${iso}Z")
+        local given = date(timestamp):fmt("${iso}Z")
 
-        error({ msg = "Timeframe is invalid." })
+        return false, string.format("Timestamp is outside the acceptable threshold (current time: '%s', wsse header time: '%s')", now, given)
     end
 
     return true
