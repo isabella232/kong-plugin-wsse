@@ -1,11 +1,10 @@
 local singletons = require "kong.singletons"
 local Logger = require "logger"
-local Object = require "classic"
 
-local ConsumerDb = Object:extend()
+local ConsumerDb = {}
 
 local function load_consumer(consumer_id, is_anonymous)
-    local result, err = singletons.dao.consumers:find { id = consumer_id }
+    local result, err = singletons.dao.consumers:find({ id = consumer_id })
 
     if not result then
         if is_anonymous and not err then

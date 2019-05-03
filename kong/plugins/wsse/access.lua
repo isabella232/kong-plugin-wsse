@@ -24,12 +24,9 @@ end
 
 local function authenticate(auth_header, plugin_config)
     local key_db = KeyDb(plugin_config.strict_key_matching)
+    local timeframe = plugin_config.timeframe_validation_threshold_in_minutes
 
-    local timeframe = plugin_config.timeframe_validation_threshold_in_minutes or plugin_config.timeframe_validation_treshhold_in_minutes
-
-    local authenticator = Wsse(key_db, timeframe)
-
-    return authenticator:authenticate(auth_header)
+    return Wsse(key_db, timeframe):authenticate(auth_header)
 end
 
 local function try_authenticate(auth_header, plugin_config)
@@ -43,11 +40,11 @@ local function try_authenticate(auth_header, plugin_config)
 end
 
 local function find_anonymous_consumer(plugin_config)
-    return ConsumerDb().find_anonymous(plugin_config.anonymous)
+    return ConsumerDb.find_anonymous(plugin_config.anonymous)
 end
 
 local function find_consumer_for(credentials)
-    return ConsumerDb().find_by_id(credentials.consumer_id)
+    return ConsumerDb.find_by_id(credentials.consumer_id)
 end
 
 local function set_consumer(consumer)

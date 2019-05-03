@@ -146,7 +146,7 @@ end
 
 function Wsse.generate_header(username, secret, nonce, created)
     if not username or not secret or not nonce then
-        throw_error_and_log("Username, secret, and nonce are required.")
+        error("Username, secret, and nonce are required.")
     end
 
     created = created or os.date("!%Y-%m-%dT%TZ")

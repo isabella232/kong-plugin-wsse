@@ -1,6 +1,6 @@
 local uuid = require "uuid"
 local Logger = require "logger"
-local wsse_lib = require "kong.plugins.wsse.wsse_lib"
+local Wsse = require "kong.plugins.wsse.wsse_lib"
 
 describe("wsse lib", function()
 
@@ -33,13 +33,13 @@ describe("wsse lib", function()
                     strict_timeframe_validation = false
                 }
             else
-                error({msg = "WSSE key could not be found."})
+                error({ msg = "WSSE key could not be found." })
             end
          end
     }
 
-    local wsse = wsse_lib(key_db, 5)
-    local test_wsse_header = wsse_lib.generate_header('test', 'test', uuid())
+    local wsse = Wsse(key_db, 5)
+    local test_wsse_header = Wsse.generate_header("test", "test", uuid())
 
     describe("#authenticate", function()
 
@@ -130,7 +130,8 @@ describe("wsse lib", function()
         end)
 
         it("should not raise error when timeframe is invalid and strict_timeframe_validation is false", function ()
-            local test_wsse_header_non_strict = wsse_lib.generate_header('test2', 'test2', uuid(), '2018-02-27T09:46:22Z')
+            local test_wsse_header_non_strict = Wsse.generate_header("test2", "test2", uuid(), "2018-02-27T09:46:22Z")
+
             assert.has_no.errors(function() wsse:authenticate(test_wsse_header_non_strict) end)
         end)
 
@@ -149,7 +150,7 @@ describe("wsse lib", function()
         end)
 
         it("should return wsse key when base64 padding is missing", function()
-            local wsse_header = wsse_lib.generate_header("test2", "test2", "110118", "2019-02-22T13:09:00Z")
+            local wsse_header = Wsse.generate_header("test2", "test2", "110118", "2019-02-22T13:09:00Z")
             local digest_without_padding = wsse_header:match('PasswordDigest="(.-)"'):gsub("=", "")
 
             assert.is_true(#digest_without_padding % 4 > 0)
@@ -166,11 +167,11 @@ describe("wsse lib", function()
     describe("#generate_header", function()
 
         it("raises error when no argument was given", function()
-            assert.has_error(wsse_lib.generate_header, { msg = "Username, secret, and nonce are required." })
+            assert.has_error(Wsse.generate_header, "Username, secret, and nonce are required.")
         end)
 
         it("returns with a generated wsse header string when username, secret, created, and nonce was given", function()
-            local generated_wsse_header = wsse_lib.generate_header('test', 'test', '44ab5733c8d764bc2712c62f77abeeec','2018-03-01T09:15:38Z')
+            local generated_wsse_header = Wsse.generate_header("test", "test", "44ab5733c8d764bc2712c62f77abeeec","2018-03-01T09:15:38Z")
             local excepted_wsse_header = 'UsernameToken Username="test", PasswordDigest="NTY0MzllMzJlMzM3NTFiNzQ2ZWVkMGEzZDRjNGQwODZiM2U2ZWJlYQ==", Nonce="44ab5733c8d764bc2712c62f77abeeec", Created="2018-03-01T09:15:38Z"'
 
             assert.are.equal(excepted_wsse_header, generated_wsse_header)

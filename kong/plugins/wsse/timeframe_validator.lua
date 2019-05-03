@@ -1,15 +1,25 @@
-local Object = require("classic")
+local Object = require "classic"
 local date = require "date"
 local Logger = require "logger"
 
 local TimeframeValidator = Object:extend()
 
 local function is_valid_timestamp_format(timestamp)
-    local success, time = pcall(function()
-        return date(timestamp)
-    end)
+    local success = pcall(date, timestamp)
 
     return success
+end
+
+local function remove_fragment_seconds(datetime_string)
+    return string.gsub(datetime_string, "(%.%d+)(([-+])(%d%d):?(%d?%d?))$", "%2")
+end
+
+local function has_timezone_info(str)
+    if str:sub(-1) == "Z" then
+        return true
+    end
+
+    return str:find("([-+])(%d%d):?(%d?%d?)$") or false
 end
 
 local function is_dst_transition()
@@ -18,16 +28,6 @@ local function is_dst_transition()
     local today = os.date("*t", os.time())
 
     return yesterday.isdst ~= today.isdst
-end
-
-local function has_timezone_info(str)
-    if str:sub(-1)=="Z" then return true end
-
-    return str:find("([-+])(%d%d):?(%d?%d?)$") or false
-end
-
-local function remove_fragment_seconds(datetime_string)
-    return string.gsub(datetime_string, '(%.%d+)(([-+])(%d%d):?(%d?%d?))$', '%2')
 end
 
 local function is_timestamp_within_threshold(timestamp, threshold_in_seconds)
@@ -40,11 +40,11 @@ local function is_timestamp_within_threshold(timestamp, threshold_in_seconds)
     end
 
     local difference = math.abs(date.diff(given_timestamp, current_date_time):spanseconds())
-
     local dst_correction = 0
 
-    if (is_dst_transition()) then
+    if is_dst_transition() then
         local one_hour_in_seconds = 60 * 60
+
         dst_correction = one_hour_in_seconds
     end
 
@@ -61,18 +61,18 @@ function TimeframeValidator:validate(timestamp, strict_timeframe_validation)
     end
 
     if not is_valid_timestamp_format(timestamp) then
-        Logger.getInstance(ngx):logWarning({msg = "Timeframe is invalid"})
-        error({msg = "Timeframe is invalid."})
+        Logger.getInstance(ngx):logWarning({ msg = "Timeframe is invalid" })
+        error({ msg = "Timeframe is invalid." })
     end
 
-    if (is_timestamp_within_threshold(timestamp, self.threshold_in_seconds)) then
+    if is_timestamp_within_threshold(timestamp, self.threshold_in_seconds) then
         Logger.getInstance(ngx):logWarning({
             msg = "Timeframe is invalid",
             current_time = tostring(date(os.time())),
             time_from_wsse_header = tostring(date(timestamp))
         })
 
-        error({msg = "Timeframe is invalid."})
+        error({ msg = "Timeframe is invalid." })
     end
 
     return true

@@ -1,14 +1,14 @@
 local singletons = require "kong.singletons"
-local Object = require("classic")
+local Object = require "classic"
 local Logger = require "logger"
 
 local KeyDb = Object:extend()
 
 local function load_credential(username, strict_key_matching)
-    local rows, err = singletons.dao.wsse_keys:find_all {key = username}
+    local rows, err = singletons.dao.wsse_keys:find_all({ key = username })
 
-    if (err ~= nil or #rows == 0) and strict_key_matching == false then
-        rows, err = singletons.dao.wsse_keys:find_all {key_lower = username:lower()}
+    if (err ~= nil or #rows == 0) and not strict_key_matching then
+        rows, err = singletons.dao.wsse_keys:find_all({ key_lower = username:lower() })
     end
 
     if err or #rows == 0 then
@@ -24,8 +24,8 @@ end
 
 function KeyDb:find_by_username(username)
     if username == nil then
-        Logger.getInstance(ngx):logWarning({msg = "Username is required."})
-        error({msg = "Username is required."})
+        Logger.getInstance(ngx):logWarning({ msg = "Username is required." })
+        error({ msg = "Username is required." })
     end
 
     local wsse_cache_key = singletons.dao.wsse_keys:cache_key(username)
@@ -33,12 +33,12 @@ function KeyDb:find_by_username(username)
 
     if err then
         Logger.getInstance(ngx):logError(err)
-        error({msg = "WSSE key could not be loaded from DB."})
+        error({ msg = "WSSE key could not be loaded from DB." })
     end
 
     if wsse_key == nil then
-        Logger.getInstance(ngx):logWarning({msg = "WSSE key can not be found."})
-        error({msg = "WSSE key can not be found."})
+        Logger.getInstance(ngx):logWarning({ msg = "WSSE key can not be found." })
+        error({ msg = "WSSE key can not be found." })
     end
 
     return wsse_key
