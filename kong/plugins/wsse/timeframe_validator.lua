@@ -55,11 +55,7 @@ function TimeframeValidator:new(threshold_in_seconds)
     self.threshold_in_seconds = threshold_in_seconds or 300
 end
 
-function TimeframeValidator:validate(timestamp, strict_timeframe_validation)
-    if strict_timeframe_validation == false then
-        return true
-    end
-
+function TimeframeValidator:validate(timestamp)
     if not is_valid_timestamp_format(timestamp) then
         Logger.getInstance(ngx):logWarning({ msg = "Timeframe is invalid" })
         error({ msg = "Timeframe is invalid." })

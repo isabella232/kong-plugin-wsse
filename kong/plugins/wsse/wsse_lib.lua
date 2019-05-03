@@ -139,7 +139,9 @@ function Wsse:authenticate(header_string)
 
     validate_credentials(wsse_params, wsse_key.secret)
 
-    self.timeframe_validator:validate(wsse_params.created, wsse_key.strict_timeframe_validation)
+    if wsse_key.strict_timeframe_validation then
+        self.timeframe_validator:validate(wsse_params.created)
+    end
 
     return wsse_key
 end

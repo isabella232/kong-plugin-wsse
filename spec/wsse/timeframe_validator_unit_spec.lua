@@ -96,12 +96,6 @@ describe("wsse timeframe validator", function()
             os.time = old_time
         end)
 
-        it("not raises error when timeframe is not valid with non strict mode", function ()
-            local invalid_timestamp = date(2017,10,29,1,59,17):fmt("${iso}Z")
-
-            assert.has_no.error(function() timeframe_validator:validate(invalid_timestamp, false) end)
-        end)
-
     end)
 
 end)
