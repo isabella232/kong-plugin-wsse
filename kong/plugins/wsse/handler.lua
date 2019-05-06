@@ -40,7 +40,7 @@ function WsseHandler:access(original_config)
     local success, result = pcall(Access.execute, conf)
 
     if not success then
-        Logger.getInstance(ngx).logError(result)
+        Logger.getInstance(ngx):logError(result)
 
         return responses.send(500, "An unexpected error occurred.")
     end
