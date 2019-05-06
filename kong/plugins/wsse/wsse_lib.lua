@@ -1,15 +1,9 @@
 local Object = require "classic"
 local base64 = require "base64"
 local sha1 = require "bgcrypto.sha1"
-local Logger = require "logger"
 local TimeframeValidator = require "kong.plugins.wsse.timeframe_validator"
 
 local Wsse = Object:extend()
-
-local function throw_error_and_log(message)
-    Logger.getInstance(ngx):logWarning({ msg = message })
-    error({ msg = message })
-end
 
 local param_to_field_name = {
     username = "Username",
@@ -20,8 +14,9 @@ local param_to_field_name = {
 
 local function ensure_param_exists(wsse_params, param_name)
     if not wsse_params[param_name] then
-        local msg = "The " .. param_to_field_name[param_name] .. " field is missing from WSSE authentication header."
-        throw_error_and_log(msg)
+        error({
+            msg = string.format("The %s field is missing from WSSE authentication header.", param_to_field_name[param_name])
+        })
     end
 end
 
@@ -50,13 +45,13 @@ end
 
 local function ensure_header_is_present(header_string)
     if not header_string then
-        throw_error_and_log("WSSE authentication header is missing.")
+        error({ msg = "WSSE authentication header is missing." })
     end
 end
 
 local function ensure_header_is_not_empty(header_string)
     if header_string == "" then
-        throw_error_and_log("WSSE authentication header is empty.")
+        error({ msg = "WSSE authentication header is empty." })
     end
 end
 
@@ -110,8 +105,13 @@ local function validate_credentials(wsse_params, secret)
         encoded_digest = pad_base64_string(encoded_digest)
     end
 
-    if expected_digest ~= base64.decode(encoded_digest) then
-        throw_error_and_log("Credentials are invalid.")
+    local actual_digest = base64.decode(encoded_digest)
+
+    if actual_digest ~= expected_digest then
+        error({
+            msg = "Credentials are invalid.",
+            reason = string.format("Password digest mismatch, actual: '%s', expected: '%s'", actual_digest, expected_digest)
+        })
     end
 end
 
@@ -132,7 +132,10 @@ function Wsse:authenticate(header_string)
     end)
 
     if not success then
-        throw_error_and_log("Credentials are invalid.")
+        error({
+            msg = "Credentials are invalid.",
+            reason = result.msg
+        })
     end
 
     local wsse_key = result
@@ -143,14 +146,10 @@ function Wsse:authenticate(header_string)
         local is_valid, err = self.timeframe_validator:validate(wsse_params.created)
 
         if not is_valid then
-            Logger.getInstance(ngx):logWarning({
+            error({
                 msg = "Timeframe is invalid.",
-                error = {
-                    msg = err
-                }
+                reason = err
             })
-
-            error({ msg = "Timeframe is invalid." })
         end
     end
 

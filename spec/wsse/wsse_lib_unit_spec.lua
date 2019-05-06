@@ -118,15 +118,32 @@ describe("wsse lib", function()
         end)
 
         it("should raise error when API user could not be found", function ()
-            assert.has.errors(function() wsse:authenticate('UsernameToken Username="non existing user", PasswordDigest="ODM3MmJiN2U2OTA2ZDhjMDlkYWExY2ZlNDYxODBjYTFmYTU0Y2I0Mg==", Nonce="4603fcf8f0fb2ea03a41ff007ea70d25", Created="2018-02-27T09:46:22Z"') end, { msg = "Credentials are invalid." })
+            local expected_error = {
+                msg = "Credentials are invalid.",
+                reason = "WSSE key could not be found."
+            }
+
+            assert.has.errors(function()
+                wsse:authenticate('UsernameToken Username="non existing user", PasswordDigest="ODM3MmJiN2U2OTA2ZDhjMDlkYWExY2ZlNDYxODBjYTFmYTU0Y2I0Mg==", Nonce="4603fcf8f0fb2ea03a41ff007ea70d25", Created="2018-02-27T09:46:22Z"')
+            end, expected_error)
         end)
 
         it("should raise error when wrong secret was given", function ()
-            assert.has.errors(function() wsse:authenticate('UsernameToken Username="test", PasswordDigest="almafa", Nonce="4603fcf8f0fb2ea03a41ff007ea70d25", Created="2018-02-27T09:46:22Z"') end, { msg = "Credentials are invalid." })
+            local success, err = pcall(function()
+                wsse:authenticate('UsernameToken Username="test", PasswordDigest="almafa", Nonce="4603fcf8f0fb2ea03a41ff007ea70d25", Created="2018-02-27T09:46:22Z"')
+            end)
+
+            assert.is_false(success)
+            assert.are.equal("Credentials are invalid.", err.msg)
         end)
 
         it("should raise error when timeframe is invalid and strict_timeframe_validation is true", function ()
-            assert.has.errors(function() wsse:authenticate('UsernameToken Username="test", PasswordDigest="ODM3MmJiN2U2OTA2ZDhjMDlkYWExY2ZlNDYxODBjYTFmYTU0Y2I0Mg==", Nonce="4603fcf8f0fb2ea03a41ff007ea70d25", Created="2018-02-27T09:46:22Z"') end, { msg = "Timeframe is invalid." })
+            local success, err = pcall(function()
+                wsse:authenticate('UsernameToken Username="test", PasswordDigest="ODM3MmJiN2U2OTA2ZDhjMDlkYWExY2ZlNDYxODBjYTFmYTU0Y2I0Mg==", Nonce="4603fcf8f0fb2ea03a41ff007ea70d25", Created="2018-02-27T09:46:22Z"')
+            end)
+
+            assert.is_false(success)
+            assert.are.equal("Timeframe is invalid.", err.msg)
         end)
 
         it("should not raise error when timeframe is invalid and strict_timeframe_validation is false", function ()

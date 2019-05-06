@@ -1,5 +1,4 @@
 local singletons = require "kong.singletons"
-local Logger = require "logger"
 
 local ConsumerDb = {}
 
@@ -19,7 +18,6 @@ end
 
 local function find_by_id(consumer_id, is_anonymous)
     if not consumer_id then
-        Logger.getInstance(ngx):logWarning({ msg = "Consumer id is required." })
         error({ msg = "Consumer id is required." })
     end
 
@@ -27,12 +25,10 @@ local function find_by_id(consumer_id, is_anonymous)
     local consumer, err = singletons.cache:get(consumer_cache_key, nil, load_consumer, consumer_id, is_anonymous)
 
     if err then
-        Logger.getInstance(ngx):logError(err)
         error(err)
     end
 
     if not consumer then
-        Logger.getInstance(ngx):logWarning({ msg = "Consumer could not be found." })
         error({ msg = "Consumer could not be found." })
     end
 

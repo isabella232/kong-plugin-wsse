@@ -24,7 +24,6 @@ end
 
 function KeyDb:find_by_username(username)
     if username == nil then
-        Logger.getInstance(ngx):logWarning({ msg = "Username is required." })
         error({ msg = "Username is required." })
     end
 
@@ -37,7 +36,6 @@ function KeyDb:find_by_username(username)
     end
 
     if wsse_key == nil then
-        Logger.getInstance(ngx):logWarning({ msg = "WSSE key can not be found." })
         error({ msg = "WSSE key can not be found." })
     end
 
