@@ -48,22 +48,26 @@ local function find_consumer_for(credentials)
 end
 
 local function set_consumer(consumer)
-    ngx.req.set_header(constants.HEADERS.CONSUMER_ID, consumer.id)
-    ngx.req.set_header(constants.HEADERS.CONSUMER_CUSTOM_ID, consumer.custom_id)
-    ngx.req.set_header(constants.HEADERS.CONSUMER_USERNAME, consumer.username)
+    kong.service.request.set_header(constants.HEADERS.CONSUMER_ID, consumer.id)
+
+    if consumer.custom_id then
+        kong.service.request.set_header(constants.HEADERS.CONSUMER_CUSTOM_ID, consumer.custom_id)
+    end
+
+    kong.service.request.set_header(constants.HEADERS.CONSUMER_USERNAME, consumer.username)
 
     ngx.ctx.authenticated_consumer = consumer
 end
 
 local function set_authenticated_access(credentials)
-    ngx.req.set_header(constants.HEADERS.CREDENTIAL_USERNAME, credentials.key)
-    ngx.req.set_header(constants.HEADERS.ANONYMOUS, nil)
+    kong.service.request.set_header(constants.HEADERS.CREDENTIAL_USERNAME, credentials.key)
+    kong.service.request.clear_header(constants.HEADERS.ANONYMOUS)
 
     ngx.ctx.authenticated_credential = credentials
 end
 
 local function set_anonymous_access()
-    ngx.req.set_header(constants.HEADERS.ANONYMOUS, true)
+    kong.service.request.set_header(constants.HEADERS.ANONYMOUS, true)
 end
 
 local function get_transformed_response(template, response_message)
@@ -71,7 +75,7 @@ local function get_transformed_response(template, response_message)
 end
 
 function Access.execute(conf)
-    local wsse_header_value = get_wsse_header_string(ngx.req.get_headers())
+    local wsse_header_value = get_wsse_header_string(kong.request.get_headers())
 
     local credentials, err = try_authenticate(wsse_header_value, conf)
 

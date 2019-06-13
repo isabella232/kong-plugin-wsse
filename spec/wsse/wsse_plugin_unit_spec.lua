@@ -5,6 +5,7 @@ local Wsse = require "kong.plugins.wsse.wsse_lib"
 
 describe("wsse plugin", function()
     local old_ngx = _G.ngx
+    local old_kong = _G.kong
     local mock_config= {
         anonymous = 'anonym123',
         timeframe_validation_threshold_in_minutes = 5
@@ -44,36 +45,46 @@ describe("wsse plugin", function()
             return test_wsse_key
         end
 
-        local ngx_req_headers = {}
         local stubbed_ngx = {
-            req = {
-                get_headers = function()
-                    return ngx_req_headers
-                end,
-                set_header = function(header_name, header_value)
-                    ngx_req_headers[header_name] = header_value
-                end
-            },
             ctx = {},
-            header = {},
-            log = function(...) end,
-            say = function(...) end,
-            exit = function(...) end,
-            var = {
-                request_id = 123
+            log = function() end,
+            var = {}
+        }
+
+        local kong_service_request_headers = {}
+
+        local stubbed_kong = {
+            service = {
+                request = {
+                    set_header = function(header_name, header_value)
+                        kong_service_request_headers[header_name] = header_value
+                    end,
+                    clear_header =  function() end
+                }
+            },
+            request = {
+                get_path = function()
+                    return "request_uri"
+                end,
+                get_method = function()
+                    return "GET"
+                end,
+                get_headers = function()
+                    return kong_service_request_headers
+                end,
+                get_body = function() end
             }
         }
 
         _G.ngx = stubbed_ngx
-        stub(stubbed_ngx, "say")
-        stub(stubbed_ngx, "exit")
-        stub(stubbed_ngx, "log")
+        _G.kong = stubbed_kong
 
         handler = plugin_handler()
     end)
 
     after_each(function()
         _G.ngx = old_ngx
+        _G.kong = old_kong
     end)
 
     describe("#access", function()
@@ -85,26 +96,32 @@ describe("wsse plugin", function()
 
             handler:access(mock_config)
 
-            assert.are.equal(true, ngx.req.get_headers()[constants.HEADERS.ANONYMOUS])
+            assert.are.equal(true, kong.request.get_headers()[constants.HEADERS.ANONYMOUS])
         end)
 
         it("set anonymous header to nil when wsse header exists", function()
-            ngx.req.set_header("X-WSSE", "some wsse header string")
+            kong.service.request.set_header("X-WSSE", "some wsse header string")
+
             handler:access(mock_config)
-            assert.are.equal(nil, ngx.req.get_headers()[constants.HEADERS.ANONYMOUS])
+
+            assert.are.equal(nil, kong.request.get_headers()[constants.HEADERS.ANONYMOUS])
         end)
 
         it("set consumer specific request headers when authentication was successful", function()
-            ngx.req.set_header("X-WSSE", "wsse header string")
+            kong.service.request.set_header("X-WSSE", "wsse header string")
+
             handler:access(mock_config)
-            assert.are.equal('test123', ngx.req.get_headers()[constants.HEADERS.CONSUMER_ID])
-            assert.are.equal('', ngx.req.get_headers()[constants.HEADERS.CONSUMER_CUSTOM_ID])
-            assert.are.equal('test', ngx.req.get_headers()[constants.HEADERS.CONSUMER_USERNAME])
+
+            assert.are.equal('test123', kong.request.get_headers()[constants.HEADERS.CONSUMER_ID])
+            assert.are.equal('', kong.request.get_headers()[constants.HEADERS.CONSUMER_CUSTOM_ID])
+            assert.are.equal('test', kong.request.get_headers()[constants.HEADERS.CONSUMER_USERNAME])
         end)
 
         it("set consumer specific ngx context variables when authentication was successful", function()
-            ngx.req.set_header("X-WSSE", "wsse header string")
+            kong.service.request.set_header("X-WSSE", "wsse header string")
+
             handler:access(mock_config)
+
             assert.are.equal(test_consumer, ngx.ctx.authenticated_consumer)
             assert.are.equal(test_wsse_key, ngx.ctx.authenticated_credential)
         end)
