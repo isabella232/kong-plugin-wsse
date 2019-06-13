@@ -1,5 +1,4 @@
 local Logger = require "logger"
-local responses = require "kong.tools.responses"
 local BasePlugin = require "kong.plugins.base_plugin"
 local InitWorker = require "kong.plugins.wsse.init_worker"
 local PluginConfig = require "kong.plugins.wsse.plugin_config"
@@ -42,7 +41,7 @@ function WsseHandler:access(original_config)
     if not success then
         Logger.getInstance(ngx):logError(result)
 
-        return responses.send(500, "An unexpected error occurred.")
+        return kong.response.exit(500, { message = "An unexpected error occurred." })
     end
 
     return result

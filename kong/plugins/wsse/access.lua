@@ -1,7 +1,6 @@
 local cjson = require "cjson"
 local Logger = require "logger"
 local constants = require "kong.constants"
-local responses = require "kong.tools.responses"
 local ConsumerDb = require "kong.plugins.wsse.consumer_db"
 local KeyDb = require "kong.plugins.wsse.key_db"
 local Wsse = require "kong.plugins.wsse.wsse_lib"
@@ -116,7 +115,7 @@ function Access.execute(conf)
         ["x-wsse"] = wsse_header_value
     })
 
-    return responses.send(status_code, get_transformed_response(conf.message_template, err.msg))
+    return kong.response.exit(status_code, get_transformed_response(conf.message_template, err.msg))
 end
 
 return Access
