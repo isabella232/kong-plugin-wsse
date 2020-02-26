@@ -1,56 +1,59 @@
-local crud = require "kong.api.crud_helpers"
+local endpoints = require "kong.api.endpoints"
+
+local wsse_keys_schema = kong.db.wsse_keys.schema
+local consumers_schema = kong.db.consumers.schema
 
 return {
-    ["/consumers/:username_or_id/wsse_key/"] = {
-        before = function(self, dao_factory, helpers)
-            crud.find_consumer_by_username_or_id(self, dao_factory, helpers)
-            self.params.consumer_id = self.consumer.id
-
-            if self.params.key then
-                self.params.key_lower = self.params.key:lower()
+    ["/consumers/:consumers/wsse_key"] = {
+        schema = wsse_keys_schema,
+        methods = {
+            POST = function(self, db, helpers)
+                if self.args.post.key then
+                    self.args.post.key_lower = self.args.post.key:lower()
+                end
+                return endpoints.post_collection_endpoint(wsse_keys_schema, consumers_schema, "consumer")(self, db, helpers)
+            end,
+            PUT = function(self, db, helpers)
+                if self.args.post.key then
+                    self.args.post.key_lower = self.args.post.key:lower()
+                end
+                return endpoints.post_collection_endpoint(wsse_keys_schema, consumers_schema, "consumer")(self, db, helpers)
             end
-        end,
-
-        POST = function(self, dao_factory, helpers)
-            crud.post(self.params, dao_factory.wsse_keys)
-        end,
-
-        PUT = function(self, dao_factory, helpers)
-            crud.put(self.params, dao_factory.wsse_keys)
-        end
+        }
     },
-    ["/consumers/:username_or_id/wsse_key/:credential_username_or_id"] = {
-        before = function(self, dao_factory, helpers)
-            crud.find_consumer_by_username_or_id(self, dao_factory, helpers)
+    ["/consumers/:consumers/wsse_key/:wsse_keys"] = {
+        schema = wsse_keys_schema,
+        methods = {
+            before = function(self, db, helpers)
+                local consumer, _, err_t = endpoints.select_entity(self, db, consumers_schema)
+                if err_t then
+                  return endpoints.handle_error(err_t)
+                end
+                if not consumer then
+                  return kong.response.exit(404, { message = "Not found" })
+                end
+                self.consumer = consumer
 
-            local credentials, err = crud.find_by_id_or_field(
-                dao_factory.wsse_keys,
-                { consumer_id = self.consumer_id },
-                ngx.unescape_uri(self.params.credential_username_or_id),
-                "key"
-            )
+                local cred, _, err_t = endpoints.select_entity(self, db, wsse_keys_schema)
+                if err_t then
+                  return endpoints.handle_error(err_t)
+                end
 
-            if err then
-                return helpers.yield_error(err)
-            elseif #credentials == 0 then
-                return helpers.responses.send_HTTP_NOT_FOUND()
+                if not cred or cred.consumer.id ~= consumer.id then
+                  return kong.response.exit(404, { message = "Not found" })
+                end
+                self.wsse_key = cred
+            end,
+            DELETE = endpoints.delete_entity_endpoint(wsse_keys_schema),
+            GET = function(self, db, helpers)
+                return kong.response.exit(200, {
+                    id = self.wsse_key.id,
+                    consumer_id = self.wsse_key.consumer.id,
+                    key = self.wsse_key.key,
+                    strict_timeframe_validation = self.wsse_key.strict_timeframe_validation,
+                    key_lower = self.wsse_key.key_lower
+                })
             end
-
-            self.wsse_key = credentials[1]
-        end,
-
-        GET = function(self, dao_factory, helpers)
-            return helpers.responses.send_HTTP_OK({
-                id = self.wsse_key.id,
-                consumer_id = self.wsse_key.consumer_id,
-                key = self.wsse_key.key,
-                strict_timeframe_validation = self.wsse_key.strict_timeframe_validation,
-                key_lower = self.wsse_key.key_lower
-            })
-        end,
-
-        DELETE = function(self, dao_factory, helpers)
-            crud.delete(self.wsse_key, dao_factory.wsse_keys)
-        end
+        }
     }
 }

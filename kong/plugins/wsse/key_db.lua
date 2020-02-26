@@ -1,21 +1,22 @@
-local singletons = require "kong.singletons"
 local Object = require "classic"
 local Logger = require "logger"
 
 local KeyDb = Object:extend()
 
 local function load_credential(username, strict_key_matching)
-    local rows, err = singletons.dao.wsse_keys:find_all({ key = username })
-
-    if (err ~= nil or #rows == 0) and not strict_key_matching then
-        rows, err = singletons.dao.wsse_keys:find_all({ key_lower = username:lower() })
-    end
-
-    if err or #rows == 0 then
+    local wsse_keys, err = kong.db.connector:query(string.format("SELECT * FROM wsse_keys WHERE key = '%s'", username))
+    if err then
         return nil, err
     end
 
-    return rows[1]
+    if #wsse_keys == 0 and not strict_key_matching then
+        wsse_keys, err = kong.db.connector:query(string.format("SELECT * FROM wsse_keys WHERE key_lower = '%s'", username:lower()))
+        if err then
+            return nil, err
+        end
+    end
+
+    return wsse_keys[1]
 end
 
 function KeyDb:new(strict_key_matching)
@@ -27,8 +28,8 @@ function KeyDb:find_by_username(username)
         error({ msg = "Username is required." })
     end
 
-    local wsse_cache_key = singletons.dao.wsse_keys:cache_key(username)
-    local wsse_key, err = singletons.cache:get(wsse_cache_key, nil, load_credential, username, self.strict_key_matching)
+    local cache_key = kong.db.wsse_keys:cache_key(username)
+    local wsse_key, err = kong.cache:get(cache_key, nil, load_credential, username, self.strict_key_matching)
 
     if err then
         Logger.getInstance(ngx):logError(err)
