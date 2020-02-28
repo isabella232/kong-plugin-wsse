@@ -1,62 +1,54 @@
-local helpers = require "spec.helpers"
-local cjson = require "cjson"
+local kong_helpers = require "spec.helpers"
+local test_helpers = require "kong_client.spec.test_helpers"
 
-describe("CacheWarmer", function()
+describe("CacheWarmer #e2e", function()
 
+    local send_admin_request
     local consumer
-    local admin_client
-    local db
-
-    setup(function()
-        local _
-        _, db = helpers.get_db_utils()
-    end)
 
     before_each(function()
-        db:truncate()
+        kong_helpers.db:truncate()
 
-        consumer = db.consumers:insert({
+        consumer = kong_helpers.db.consumers:insert({
             username = "CacheTestUser"
         })
 
-        assert(helpers.start_kong({ plugins = "bundled,wsse" }))
-        admin_client = helpers.admin_client()
+        kong_helpers.start_kong({ plugins = "wsse" })
+
+        send_admin_request = test_helpers.create_request_sender(kong_helpers.admin_client())
     end)
 
     after_each(function()
-        if admin_client then
-            admin_client:close()
-        end
-        helpers.stop_kong()
+        kong_helpers.stop_kong()
     end)
 
     context("cache_all_entities", function()
         it("should store consumer in cache", function()
-            local cache_key = db.consumers:cache_key(consumer.id)
-            local raw_response = assert(admin_client:get("/cache/" .. cache_key, {
-                headers = {}
-            }))
-            local body = assert.res_status(200, raw_response)
-            local response = cjson.decode(body)
+            local cache_key = kong_helpers.db.consumers:cache_key(consumer.id)
+            local response = send_admin_request({
+                method = "GET",
+                path = "/cache/" .. cache_key
+            })
 
-            assert.is_equal(response.username, "CacheTestUser")
+            assert.are.equals(200, response.status)
+            assert.are.equals("CacheTestUser", response.body.username)
         end)
 
         it("should store wsse_key in cache", function()
-            local wsse_credential = db.wsse_keys:insert({
+            local wsse_credential = kong_helpers.db.wsse_keys:insert({
                 key = "cache_test_user001",
                 key_lower = "cache_test_user001",
                 consumer = { id = consumer.id }
             })
 
-            local cache_key = db.wsse_keys:cache_key(wsse_credential.key)
-            local raw_response = assert(admin_client:get("/cache/" .. cache_key, {
-                headers = {}
-            }))
-            local body = assert.res_status(200, raw_response)
-            local response = cjson.decode(body)
+            local cache_key = kong_helpers.db.wsse_keys:cache_key(wsse_credential.key)
+            local response = send_admin_request({
+                method = "GET",
+                path = "/cache/" .. cache_key
+            })
 
-            assert.is_equal(response.key, "cache_test_user001")
+            assert.are.equals(200, response.status)
+            assert.are.equals("cache_test_user001", response.body.key)
         end)
     end)
 end)

@@ -5,4 +5,5 @@ RUN luarocks install date 2.1.2-1 && \
     luarocks install fly-bgcrypto-sha 0.0.1-1 && \
     luarocks install uuid 0.2-1 && \
     luarocks install classic && \
-    luarocks install kong-lib-logger --deps-mode=none
+    luarocks install kong-lib-logger --deps-mode=none && \
+    luarocks install kong-client 1.3.0
