@@ -32,8 +32,6 @@ build = {
     ["kong.plugins.wsse.plugin_config"] = "kong/plugins/wsse/plugin_config.lua",
     ["kong.plugins.wsse.schema"] = "kong/plugins/wsse/schema.lua",
     ["kong.plugins.wsse.timeframe_validator"] = "kong/plugins/wsse/timeframe_validator.lua",
-    ["kong.plugins.wsse.wsse_lib"] = "kong/plugins/wsse/wsse_lib.lua",
-    ["kong.plugins.wsse.migrations.cassandra"] = "kong/plugins/wsse/migrations/cassandra.lua",
-    ["kong.plugins.wsse.migrations.postgres"] = "kong/plugins/wsse/migrations/postgres.lua"
+    ["kong.plugins.wsse.wsse_lib"] = "kong/plugins/wsse/wsse_lib.lua"
   }
 }
