@@ -3,6 +3,16 @@ local Logger = require "logger"
 
 local KeyDb = Object:extend()
 
+local function fix_consumer_reference(wsse_key)
+    if wsse_key then
+        wsse_key.consumer = {
+            id = wsse_key.consumer_id
+        }
+        wsse_key.consumer_id = nil
+    end
+    return wsse_key
+end
+
 local function load_credential(username, strict_key_matching)
     local wsse_keys, err = kong.db.connector:query(string.format("SELECT * FROM wsse_keys WHERE key = '%s'", username))
     if err then
@@ -16,7 +26,7 @@ local function load_credential(username, strict_key_matching)
         end
     end
 
-    return wsse_keys[1]
+    return fix_consumer_reference(wsse_keys[1])
 end
 
 function KeyDb:new(strict_key_matching)

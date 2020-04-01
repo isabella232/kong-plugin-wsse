@@ -43,7 +43,7 @@ local function find_anonymous_consumer(plugin_config)
 end
 
 local function find_consumer_for(credentials)
-    return ConsumerDb.find_by_id(credentials.consumer_id)
+    return ConsumerDb.find_by_id(credentials.consumer.id)
 end
 
 local function set_consumer(consumer)

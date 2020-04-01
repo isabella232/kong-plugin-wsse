@@ -34,7 +34,9 @@ describe("wsse plugin", function()
 
     local test_wsse_key = {
         id = 1,
-        consumer_id = 'test123',
+        consumer = {
+            id = 'test123'
+        },
         key = "test",
         secret = "test",
         strict_timeframe_validation = true
