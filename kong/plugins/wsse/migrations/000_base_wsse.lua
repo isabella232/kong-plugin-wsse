@@ -10,9 +10,9 @@ return {
                 key_lower text UNIQUE,
                 PRIMARY KEY (id)
             );
-            CREATE INDEX wssekeys_key_idx ON wsse_keys(key);
-            CREATE INDEX wssekeys_consumer_idx ON wsse_keys(consumer_id);
-            CREATE INDEX wssekeys_key_lower_idx ON wsse_keys(key_lower);
+            CREATE INDEX IF NOT EXISTS wssekeys_key_idx ON wsse_keys(key);
+            CREATE INDEX IF NOT EXISTS wssekeys_consumer_idx ON wsse_keys(consumer_id);
+            CREATE INDEX IF NOT EXISTS wssekeys_key_lower_idx ON wsse_keys(key_lower);
         ]]
     },
     cassandra = {
