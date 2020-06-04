@@ -12,10 +12,6 @@ describe("wsse lib", function()
 
     local key_db = {
         find_by_username = function(self, username)
-            if username == nil then
-                error({ msg = "Username is required." })
-            end
-
             if username == "test" then
                 return {
                     id = 1,
@@ -115,17 +111,6 @@ describe("wsse lib", function()
             local header = string.gsub(test_wsse_header, 'PasswordDigest%s*=%s*"([^",]+)",', 'PasswordDigest=".%1",')
 
             assert.has_no.errors(function() wsse:authenticate(header) end)
-        end)
-
-        it("should raise error when API user could not be found", function ()
-            local expected_error = {
-                msg = "Credentials are invalid.",
-                reason = "WSSE key could not be found."
-            }
-
-            assert.has.errors(function()
-                wsse:authenticate('UsernameToken Username="non existing user", PasswordDigest="ODM3MmJiN2U2OTA2ZDhjMDlkYWExY2ZlNDYxODBjYTFmYTU0Y2I0Mg==", Nonce="4603fcf8f0fb2ea03a41ff007ea70d25", Created="2018-02-27T09:46:22Z"')
-            end, expected_error)
         end)
 
         it("should raise error when wrong secret was given", function ()

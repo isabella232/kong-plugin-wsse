@@ -38,6 +38,10 @@ function KeyDb:find_by_username(username)
         error({ msg = "Username is required." })
     end
 
+    if string.find(username, "'") then
+        error({ msg = "Username contains illegal characters." })
+    end
+
     local cache_key = kong.db.wsse_keys:cache_key(username)
     local wsse_key, err = kong.cache:get(cache_key, nil, load_credential, username, self.strict_key_matching)
 
