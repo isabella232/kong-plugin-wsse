@@ -51,6 +51,7 @@ return {
                     { anonymous = { type = "string", default = nil, custom_validator = ensure_valid_uuid_or_nil } },
                     { timeframe_validation_threshold_in_minutes = { type = "number", default = 5 } },
                     { strict_key_matching = { type = "boolean", default = true } },
+                    { encryption_key_path = { type = "string" } }, -- TODO: required
                     { message_template = { type = "string", default = '{"message": "%s"}', custom_validator = ensure_message_template_is_valid_json } },
                     { status_code = { type = "number", default = 401, custom_validator = validate_http_status_code } }
                 }

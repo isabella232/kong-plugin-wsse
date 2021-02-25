@@ -39,6 +39,18 @@ describe("WSSE #plugin #schema #e2e", function()
         assert.are.equals(plugin.config.status_code, 401)
     end)
 
+    it("should have encryption_key_path parameter in config", function()
+        local plugin = kong_sdk.plugins:create({
+            service = { id = service.id },
+            name = "wsse",
+            config = {
+                encryption_key_path = 'random-path'
+            }
+        })
+
+        assert.are.equals(plugin.config.encryption_key_path, 'random-path')
+    end)
+
     context("when anonymous field is set", function()
         it("should throw error when anonymous is not a valid uuid", function()
             local _, response = pcall(function()
