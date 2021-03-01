@@ -18,6 +18,7 @@ return { wsse_keys = {
         },
         { key = { type = "string", unique = true, required = true } },
         { secret = { type = "string", auto = true } },
+        { encrypted_secret = { type = "string" } },
         { strict_timeframe_validation = { type = "boolean", default = true } },
         { key_lower = { type = "string", unique = true, required = true } }
     }

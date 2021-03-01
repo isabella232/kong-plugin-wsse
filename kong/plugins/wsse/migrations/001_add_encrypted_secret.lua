@@ -4,7 +4,7 @@ return {
         up = [[
             DO $$
             BEGIN
-            ALTER TABLE IF EXISTS ONLY "wsse_keys" ADD "encryption_key_path" TEXT;
+            ALTER TABLE IF EXISTS ONLY "wsse_keys" ADD "encrypted_secret" TEXT;
             EXCEPTION WHEN DUPLICATE_COLUMN THEN
             -- Do nothing, accept existing state
             END;
@@ -13,7 +13,7 @@ return {
     },
     cassandra = {
         up = [[
-            ALTER TABLE wsse_keys ADD encryption_key_path text;
+            ALTER TABLE wsse_keys ADD encrypted_secret text;
         ]]
     }
 }

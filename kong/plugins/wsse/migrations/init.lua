@@ -1,4 +1,4 @@
 return {
     "000_base_wsse",
-    "001_add_encryption_key_path"
+    "001_add_encrypted_secret"
 }
