@@ -29,8 +29,10 @@ local function load_credential(username, strict_key_matching)
     return fix_consumer_reference(wsse_keys[1])
 end
 
-function KeyDb:new(strict_key_matching)
+function KeyDb:new(crypto, strict_key_matching, use_encrypted_secret)
+    self.crypto = crypto
     self.strict_key_matching = strict_key_matching
+    self.use_encrypted_secret = use_encrypted_secret
 end
 
 function KeyDb:find_by_username(username)
@@ -52,6 +54,19 @@ function KeyDb:find_by_username(username)
 
     if wsse_key == nil then
         error({ msg = "WSSE key can not be found." })
+    end
+
+    if self.use_encrypted_secret == "yes" then
+        wsse_key.secret = self.crypto:decrypt(wsse_key.encrypted_secret)
+    end
+
+    if self.use_encrypted_secret == "darklaunch" then
+        local decrypted_secret = self.crypto:decrypt(wsse_key.encrypted_secret)
+        if wsse_key.secret ~= decrypted_secret then
+            Logger.getInstance(ngx):logWarning(
+                { msg = ('Found not matching secret for %s'):format(wsse_key.key)}
+            );
+        end
     end
 
     return wsse_key

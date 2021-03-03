@@ -1,15 +1,35 @@
 local Logger = require "logger"
 local KeyDb = require "kong.plugins.wsse.key_db"
+local EasyCrypto = require "resty.easy-crypto"
+local Crypt = require "kong.plugins.wsse.crypt"
 
 Logger.getInstance = function()
     return {
-        logError = function() end
+        logError = function() end,
+        logWarning = function() end
     }
 end
 
 describe("KeyDb", function()
 
     local original_kong
+
+    local function get_easy_crypto()
+        local ecrypto = EasyCrypto:new({
+            saltSize = 12,
+            ivSize = 16,
+            iterationCount = 10000
+        })
+        return ecrypto
+    end
+    
+    local function load_encryption_key_from_file(file_path)
+        local file = assert(io.open(file_path, "r"))
+        local encryption_key = file:read("*all")
+        file:close()
+        return encryption_key
+    end
+
 
     setup(function()
         original_kong = _G.kong
@@ -102,11 +122,19 @@ describe("KeyDb", function()
         end)
 
         context("when kong queries the database and returns a result", function()
+            local encrypted_secret = "encrypted_irrelevant";
+            local crypt = {
+                decrypt = function() 
+                    return "decrypted_irrelevant"
+                end
+            }
+            
             before_each(function()
                 local counter = 0;
                 local key = {
                     key = "username",
                     secret = "irrelevant",
+                    encrypted_secret,
                     consumer_id = "consumer"
                 }
 
@@ -133,18 +161,60 @@ describe("KeyDb", function()
 
             it("should return a wsse key", function()
                 local strict_key_matching = false;
+                local use_encrypted_key = "yes";
                 local username = "USERNAME";
                 local expected_key = {
                     key = "username",
-                    secret = "irrelevant",
+                    secret = "decrypted_irrelevant",
+                    encrypted_secret,
                     consumer = {
                         id = "consumer"
                     }
                 }
 
-                local key = KeyDb(strict_key_matching):find_by_username(username);
+                local key = KeyDb(crypt, strict_key_matching, use_encrypted_key):find_by_username(username);
 
                 assert.are.same(expected_key, key)
+            end)
+
+            context("if flipper is off", function()
+                it("should return a wsse key", function()
+                    local strict_key_matching = false;
+                    local use_encrypted_key = "no";
+                    local username = "USERNAME";
+                    local expected_key = {
+                        key = "username",
+                        secret = "irrelevant",
+                        encrypted_secret,
+                        consumer = {
+                            id = "consumer"
+                        }
+                    }
+    
+                    local key = KeyDb(crypt, strict_key_matching, use_encrypted_key):find_by_username(username);
+    
+                    assert.are.same(expected_key, key)
+                end)
+            end)
+
+            context("if flipper is in darklaunch mode", function()
+                it("should return wsse key", function()
+                    local strict_key_matching = false;
+                    local use_encrypted_key = "darklaunch";
+                    local username = "USERNAME";
+                    local expected_key = {
+                        key = "username",
+                        secret = "irrelevant",
+                        encrypted_secret,
+                        consumer = {
+                            id = "consumer"
+                        }
+                    }
+    
+                    local key = KeyDb(crypt, strict_key_matching, use_encrypted_key):find_by_username(username);
+    
+                    assert.are.same(expected_key, key)
+                end)
             end)
         end)
     end)

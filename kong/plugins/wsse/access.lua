@@ -2,6 +2,7 @@ local cjson = require "cjson"
 local Logger = require "logger"
 local constants = require "kong.constants"
 local ConsumerDb = require "kong.plugins.wsse.consumer_db"
+local Crypt = require "kong.plugins.wsse.crypt"
 local KeyDb = require "kong.plugins.wsse.key_db"
 local Wsse = require "kong.plugins.wsse.wsse_lib"
 
@@ -22,7 +23,8 @@ local function anonymous_passthrough_is_enabled(plugin_config)
 end
 
 local function authenticate(auth_header, plugin_config)
-    local key_db = KeyDb(plugin_config.strict_key_matching)
+    local crypt = Crypt(plugin_config.encryption_key_path)
+    local key_db = KeyDb(crypt, plugin_config.strict_key_matching, plugin_config.use_encrypted_secret)
     local timeframe = plugin_config.timeframe_validation_threshold_in_minutes
 
     return Wsse(key_db, timeframe):authenticate(auth_header)

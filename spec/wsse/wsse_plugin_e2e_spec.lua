@@ -2,11 +2,31 @@ local kong_helpers = require "spec.helpers"
 local test_helpers = require "kong_client.spec.test_helpers"
 local Wsse = require "kong.plugins.wsse.wsse_lib"
 local uuid = require "kong.tools.utils".uuid
+local EasyCrypto = require "resty.easy-crypto"
 
 describe("WSSE #plugin #handler #e2e", function()
 
     local kong_sdk, send_request, send_admin_request
     local service, consumer
+
+    local function get_easy_crypto()
+        local ecrypto = EasyCrypto:new({
+            saltSize = 12,
+            ivSize = 16,
+            iterationCount = 10000
+        })
+        return ecrypto
+    end
+    
+    local function load_encryption_key_from_file(file_path)
+        local file = assert(io.open(file_path, "r"))
+        local encryption_key = file:read("*all")
+        file:close()
+        return encryption_key
+    end
+
+    local crypto = get_easy_crypto()
+    local encryption_key = load_encryption_key_from_file("/secret.txt")
 
     setup(function()
         kong_helpers.start_kong({ plugins = "wsse" })
@@ -41,7 +61,10 @@ describe("WSSE #plugin #handler #e2e", function()
             kong_sdk.plugins:create({
                 service = { id = service.id },
                 name = "wsse",
-                config = { encryption_key_path = "/secret.txt" }
+                config = {
+                    encryption_key_path = "/secret.txt",
+                    use_encrypted_secret = "yes"
+                }
             })
         end)
 
@@ -80,7 +103,79 @@ describe("WSSE #plugin #handler #e2e", function()
                 path = "/consumers/" .. consumer.id .. "/wsse_key",
                 body = {
                     key = 'test',
-                    secret = 'test'
+                    encrypted_secret = crypto:encrypt(encryption_key, "test")
+                },
+                headers = {
+                    ["Content-Type"] = "application/json"
+                }
+            })
+
+            local response = send_request({
+                method = "GET",
+                path = "/request",
+                headers = {
+                    ["Host"] = "test1.com",
+                    ["X-WSSE"] = header
+                }
+            })
+
+            assert.are.equals(200, response.status)
+        end)
+        
+        it("should proxy the request to the upstream on successful auth when flipper is off", function()
+            kong_sdk.plugins:create({
+                name = "wsse",
+                config = {
+                    encryption_key_path = "/secret.txt",
+                    use_encrypted_secret = "no"
+                }
+            })
+
+            local header = Wsse.generate_header("test", "test", uuid())
+
+            send_admin_request({
+                method = "POST",
+                path = "/consumers/" .. consumer.id .. "/wsse_key",
+                body = {
+                    key = 'test',
+                    secret = "test",
+                    encrypted_secret = crypto:encrypt(encryption_key, "different_secret")
+                },
+                headers = {
+                    ["Content-Type"] = "application/json"
+                }
+            })
+
+            local response = send_request({
+                method = "GET",
+                path = "/request",
+                headers = {
+                    ["Host"] = "test1.com",
+                    ["X-WSSE"] = header
+                }
+            })
+
+            assert.are.equals(200, response.status)
+        end)
+
+        it("should proxy the request to the upstream on successful auth when flipper is in darklaunch mode", function()
+            kong_sdk.plugins:create({
+                name = "wsse",
+                config = {
+                    encryption_key_path = "/secret.txt",
+                    use_encrypted_secret = "darklaunch"
+                }
+            })
+
+            local header = Wsse.generate_header("test", "test", uuid())
+
+            send_admin_request({
+                method = "POST",
+                path = "/consumers/" .. consumer.id .. "/wsse_key",
+                body = {
+                    key = 'test',
+                    secret = "test",
+                    encrypted_secret = crypto:encrypt(encryption_key, "different_secret")
                 },
                 headers = {
                     ["Content-Type"] = "application/json"
@@ -133,7 +228,7 @@ describe("WSSE #plugin #handler #e2e", function()
                     path = "/consumers/" .. consumer.id .. "/wsse_key",
                     body = {
                         key = 'test2',
-                        secret = 'test2',
+                        encrypted_secret = crypto:encrypt(encryption_key, "test2"),
                         strict_timeframe_validation = false
                     },
                     headers = {
@@ -161,7 +256,7 @@ describe("WSSE #plugin #handler #e2e", function()
                     path = "/consumers/" .. consumer.id .. "/wsse_key",
                     body = {
                         key = 'test2',
-                        secret = 'test2'
+                        encrypted_secret = crypto:encrypt(encryption_key, "test2")
                     },
                     headers = {
                         ["Content-Type"] = "application/json"
@@ -196,7 +291,8 @@ describe("WSSE #plugin #handler #e2e", function()
                 name = "wsse",
                 config = {
                     anonymous = anonymous_consumer.id,
-                    encryption_key_path = "/secret.txt"
+                    encryption_key_path = "/secret.txt",
+                    use_encrypted_secret = "yes"
                 }
             })
         end)
@@ -223,7 +319,7 @@ describe("WSSE #plugin #handler #e2e", function()
                 path = "/consumers/" .. consumer.id .. "/wsse_key",
                 body = {
                     key = 'test1',
-                    secret = 'test1'
+                    encrypted_secret = crypto:encrypt(encryption_key, "test1")
                 },
                 headers = {
                     ["Content-Type"] = "application/json"
@@ -265,7 +361,7 @@ describe("WSSE #plugin #handler #e2e", function()
                 path = "/consumers/" .. consumer.id .. "/wsse_key",
                 body = {
                     key = 'test',
-                    secret = 'test'
+                    encrypted_secret = crypto:encrypt(encryption_key, "test")
                 },
                 headers = {
                     ["Content-Type"] = "application/json"
@@ -308,7 +404,7 @@ describe("WSSE #plugin #handler #e2e", function()
                     path = "/consumers/" .. consumer.id .. "/wsse_key",
                     body = {
                         key = 'test2',
-                        secret = 'test2',
+                        encrypted_secret = crypto:encrypt(encryption_key, "test2"),
                         strict_timeframe_validation = false
                     },
                     headers = {
@@ -367,7 +463,8 @@ describe("WSSE #plugin #handler #e2e", function()
                 name = "wsse",
                 config = {
                     strict_key_matching = false,
-                    encryption_key_path = "/secret.txt"
+                    encryption_key_path = "/secret.txt",
+                    use_encrypted_secret = "yes"
                 }
             })
         end)
@@ -380,7 +477,7 @@ describe("WSSE #plugin #handler #e2e", function()
                 path = "/consumers/" .. consumer.id .. "/wsse_key",
                 body = {
                     key = 'TeStCi',
-                    secret = 'test'
+                    encrypted_secret = crypto:encrypt(encryption_key, "test")
                 },
                 headers = {
                     ["Content-Type"] = "application/json"
