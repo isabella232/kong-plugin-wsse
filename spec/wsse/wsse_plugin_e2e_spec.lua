@@ -41,7 +41,7 @@ describe("WSSE #plugin #handler #e2e", function()
             kong_sdk.plugins:create({
                 service = { id = service.id },
                 name = "wsse",
-                config = {}
+                config = { encryption_key_path = "/secret.txt" }
             })
         end)
 
@@ -194,7 +194,10 @@ describe("WSSE #plugin #handler #e2e", function()
             kong_sdk.plugins:create({
                 service = { id = service.id },
                 name = "wsse",
-                config = { anonymous = anonymous_consumer.id }
+                config = {
+                    anonymous = anonymous_consumer.id,
+                    encryption_key_path = "/secret.txt"
+                }
             })
         end)
 
@@ -362,7 +365,10 @@ describe("WSSE #plugin #handler #e2e", function()
             kong_sdk.plugins:create({
                 service = { id = service.id },
                 name = "wsse",
-                config = { strict_key_matching = false }
+                config = {
+                    strict_key_matching = false,
+                    encryption_key_path = "/secret.txt"
+                }
             })
         end)
 
@@ -401,7 +407,10 @@ describe("WSSE #plugin #handler #e2e", function()
             kong_sdk.plugins:create({
                 service = { id = service.id },
                 name = "wsse",
-                config = { status_code = 400 }
+                config = {
+                    status_code = 400,
+                    encryption_key_path = "/secret.txt"
+                }
             })
         end)
 
@@ -421,7 +430,10 @@ describe("WSSE #plugin #handler #e2e", function()
             kong_sdk.plugins:create({
                 service = { id = service.id },
                 name = "wsse",
-                config = { message_template = '{"custom-message": "%s"}' }
+                config = {
+                    message_template = '{"custom-message": "%s"}',
+                    encryption_key_path = "/secret.txt"
+                }
             })
         end)
 

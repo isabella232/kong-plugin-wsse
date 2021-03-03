@@ -25,7 +25,9 @@ build = {
     ["kong.plugins.wsse.api"] = "kong/plugins/wsse/api.lua",
     ["kong.plugins.wsse.cache_warmer"] = "kong/plugins/wsse/cache_warmer.lua",
     ["kong.plugins.wsse.consumer_db"] = "kong/plugins/wsse/consumer_db.lua",
+    ["kong.plugins.wsse.crypt"] = "kong/plugins/wsse/crypt.lua",
     ["kong.plugins.wsse.daos"] = "kong/plugins/wsse/daos.lua",
+    ["kong.plugins.wsse.encryption_key_path_retriever] = "kong/plugins/wsse/encryption_key_path_retriever.lua",
     ["kong.plugins.wsse.handler"] = "kong/plugins/wsse/handler.lua",
     ["kong.plugins.wsse.init_worker"] = "kong/plugins/wsse/init_worker.lua",
     ["kong.plugins.wsse.key_db"] = "kong/plugins/wsse/key_db.lua",
@@ -34,7 +36,7 @@ build = {
     ["kong.plugins.wsse.timeframe_validator"] = "kong/plugins/wsse/timeframe_validator.lua",
     ["kong.plugins.wsse.wsse_lib"] = "kong/plugins/wsse/wsse_lib.lua",
     ["kong.plugins.wsse.migrations.000_base_wsse"] = "kong/plugins/wsse/migrations/000_base_wsse.lua",
-    ["kong.plugins.wsse.migrations.001_add_encrypted_secret"] = "kong/plugins/wsse/migrations/001_add_encrypted_secret.lua", 
+    ["kong.plugins.wsse.migrations.001_add_encrypted_secret"] = "kong/plugins/wsse/migrations/001_add_encrypted_secret.lua",
     ["kong.plugins.wsse.migrations.init"] = "kong/plugins/wsse/migrations/init.lua",
   }
 }

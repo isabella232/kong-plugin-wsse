@@ -1,11 +1,29 @@
 local kong_helpers = require "spec.helpers"
 local test_helpers = require "kong_client.spec.test_helpers"
 local uuid = require "kong.tools.utils".uuid
+local EasyCrypto = require "resty.easy-crypto"
 
 describe("WSSE #plugin #api #e2e", function()
 
     local kong_sdk, send_admin_request
     local consumer
+    local blueprints, db
+
+    local function get_easy_crypto()
+        local ecrypto = EasyCrypto:new({
+            saltSize = 12,
+            ivSize = 16,
+            iterationCount = 10000
+        })
+        return ecrypto
+    end
+    
+    local function load_encryption_key_from_file(file_path)
+        local file = assert(io.open(file_path, "r"))
+        local encryption_key = file:read("*all")
+        file:close()
+        return encryption_key
+    end
 
     setup(function()
         kong_helpers.start_kong({ plugins = "wsse" })
@@ -20,6 +38,8 @@ describe("WSSE #plugin #api #e2e", function()
 
     before_each(function()
         kong_helpers.db:truncate()
+
+        blueprints, db = kong_helpers.get_db_utils()
 
         consumer = kong_sdk.consumers:create({
             username = "TestUser"
@@ -82,6 +102,56 @@ describe("WSSE #plugin #api #e2e", function()
 
             assert.are.equals(201, response.status)
             assert.are.equals("irrelevant", response.body.key_lower)
+        end)
+
+        it("should store the wsse key with encrypted secret using encryption key from file", function ()
+            local service = kong_sdk.services:create({
+                name = "testservice",
+                url = "http://mockbin:8080/request"
+            })
+            
+            local plugin = kong_sdk.plugins:create({
+                service = { id = service.id },
+                name = "wsse",
+                config = { encryption_key_path = "/secret.txt" }
+            })
+            local ecrypto = get_easy_crypto()
+            local response = send_admin_request({
+                method = "POST",
+                path = "/consumers/" .. consumer.id .. "/wsse_key",
+                body = {
+                    key = 'IRRELEVANT',
+                    secret = 'secret'
+                },
+                headers = {
+                    ["Content-Type"] = "application/json"
+                }
+            })
+
+            local encryption_key = load_encryption_key_from_file(plugin.config.encryption_key_path)
+
+            local row = assert(db.wsse_keys:select({ id = response.body.id }))
+
+            assert.are.equals("secret", ecrypto:decrypt(encryption_key, row.encrypted_secret))
+        end)
+
+        context("when no plugin is added", function()
+            it("should return 412 status", function()
+                local response = send_admin_request({
+                    method = "POST",
+                    path = "/consumers/" .. consumer.id .. "/wsse_key",
+                    body = {
+                        key = "irrelevant",
+                        secret = "irrelevant"
+                    },
+                    headers = {
+                        ["Content-Type"] = "application/json"
+                    }
+                })
+
+                assert.are.equals(412, response.status)
+                assert.are.equals("Encryption key was not defined", response.body.message)
+            end)
         end)
     end)
 
@@ -234,6 +304,10 @@ describe("WSSE #plugin #api #e2e", function()
         end)
 
         it("should return with the wsse_key but should not return the secret", function ()
+            local plugin = kong_sdk.plugins:create({
+                name = "wsse",
+                config = { encryption_key_path = "/secret.txt" }
+            })
             local response_create = send_admin_request({
                 method = "POST",
                 path = "/consumers/" .. consumer.id .. "/wsse_key",

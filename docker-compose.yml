@@ -36,6 +36,7 @@ services:
     volumes:
       - .:/kong-plugins
       - ./spec/kong_tests.conf:/kong/spec/kong_tests.conf
+      - ./secret.txt:/secret.txt
     command: bash -c "kong migrations bootstrap && ./docker-entrypoint-kong.sh kong docker-start"
 
   kong-database:

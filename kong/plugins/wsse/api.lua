@@ -1,24 +1,38 @@
 local endpoints = require "kong.api.endpoints"
+local Crypt = require "kong.plugins.wsse.crypt"
+local EncryptionKeyPathRetriever = require "kong.plugins.wsse.encryption_key_path_retriever"
 
 local wsse_keys_schema = kong.db.wsse_keys.schema
 local consumers_schema = kong.db.consumers.schema
+
+local function create_wsse_key(self, db, helpers)
+    local request_body = self.args.post
+    
+    if request_body.key then
+        request_body.key_lower = request_body.key:lower()
+    end
+
+    if request_body.secret then
+        local path = EncryptionKeyPathRetriever(db):find_key_path()
+        if not path then
+            return kong.response.exit(412, {
+                message = "Encryption key was not defined"
+            })
+        end
+        local crypt = Crypt(path)
+        local encrypted_secret = crypt:encrypt(request_body.secret)
+        request_body.encrypted_secret = encrypted_secret
+    end
+
+    return endpoints.post_collection_endpoint(wsse_keys_schema, consumers_schema, "consumer")(self, db, helpers)
+end
 
 return {
     ["/consumers/:consumers/wsse_key"] = {
         schema = wsse_keys_schema,
         methods = {
-            POST = function(self, db, helpers)
-                if self.args.post.key then
-                    self.args.post.key_lower = self.args.post.key:lower()
-                end
-                return endpoints.post_collection_endpoint(wsse_keys_schema, consumers_schema, "consumer")(self, db, helpers)
-            end,
-            PUT = function(self, db, helpers)
-                if self.args.post.key then
-                    self.args.post.key_lower = self.args.post.key:lower()
-                end
-                return endpoints.post_collection_endpoint(wsse_keys_schema, consumers_schema, "consumer")(self, db, helpers)
-            end
+            POST = create_wsse_key,
+            PUT = create_wsse_key
         }
     },
     ["/consumers/:consumers/wsse_key/:wsse_keys"] = {
