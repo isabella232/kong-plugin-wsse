@@ -1,9 +1,9 @@
 package = "kong-plugin-wsse"
-version = "4.1.1-1"
+version = "4.1.0-1"
 supported_platforms = {"linux", "macosx"}
 source = {
   url = "git+https://github.com/emartech/kong-plugin-wsse.git",
-  tag = "4.1.1"
+  tag = "4.1.0"
 }
 description = {
   summary = "WSSE auth plugin for Kong API gateway.",
@@ -27,7 +27,7 @@ build = {
     ["kong.plugins.wsse.consumer_db"] = "kong/plugins/wsse/consumer_db.lua",
     ["kong.plugins.wsse.crypt"] = "kong/plugins/wsse/crypt.lua",
     ["kong.plugins.wsse.daos"] = "kong/plugins/wsse/daos.lua",
-    ["kong.plugins.wsse.encryption_key_path_retriever] = "kong/plugins/wsse/encryption_key_path_retriever.lua",
+    ["kong.plugins.wsse.encryption_key_path_retriever"] = "kong/plugins/wsse/encryption_key_path_retriever.lua",
     ["kong.plugins.wsse.handler"] = "kong/plugins/wsse/handler.lua",
     ["kong.plugins.wsse.init_worker"] = "kong/plugins/wsse/init_worker.lua",
     ["kong.plugins.wsse.key_db"] = "kong/plugins/wsse/key_db.lua",
