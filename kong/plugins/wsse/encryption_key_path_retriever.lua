@@ -7,16 +7,16 @@ function EncryptionKeyPathRetriever:new(db)
 end
 
 function EncryptionKeyPathRetriever:find_key_path()
-    local escher_plugins, err = self.db.connector:query(string.format("SELECT * FROM plugins WHERE name = '%s' LIMIT 1", "wsse"))
+    local wsse_plugins, err = self.db.connector:query(string.format("SELECT * FROM plugins WHERE name = '%s' LIMIT 1", "wsse"))
     if err then
         return nil, err
     end
 
-    if not escher_plugins[1] then
+    if not wsse_plugins[1] then
         return nil
     end
 
-    return escher_plugins[1].config.encryption_key_path
+    return wsse_plugins[1].config.encryption_key_path
 end
 
 return EncryptionKeyPathRetriever
