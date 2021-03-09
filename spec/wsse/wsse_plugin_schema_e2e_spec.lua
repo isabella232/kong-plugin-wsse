@@ -33,6 +33,7 @@ describe("WSSE #plugin #schema #e2e", function()
         })
 
         assert.are.equals(plugin.config.anonymous, ngx.null)
+        assert.are.equals(plugin.config.use_encrypted_secret, "no")
         assert.are.equals(plugin.config.timeframe_validation_threshold_in_minutes, 5)
         assert.are.equals(plugin.config.strict_key_matching, true)
         assert.are.equals(plugin.config.message_template, '{"message": "%s"}')

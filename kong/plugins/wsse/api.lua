@@ -19,9 +19,13 @@ local function create_wsse_key(self, db, helpers)
                 message = "Encryption key was not defined"
             })
         end
-        local crypt = Crypt(path)
-        local encrypted_secret = crypt:encrypt(request_body.secret)
-        request_body.encrypted_secret = encrypted_secret
+
+        -- use_encrypted_secret flipper!
+        if path ~= ngx.null then
+            local crypt = Crypt(path)
+            local encrypted_secret = crypt:encrypt(request_body.secret)
+            request_body.encrypted_secret = encrypted_secret
+        end
     end
 
     return endpoints.post_collection_endpoint(wsse_keys_schema, consumers_schema, "consumer")(self, db, helpers)
