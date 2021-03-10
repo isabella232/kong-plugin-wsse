@@ -7,7 +7,7 @@ local consumers_schema = kong.db.consumers.schema
 
 local function create_wsse_key(self, db, helpers)
     local request_body = self.args.post
-    
+
     if request_body.key then
         request_body.key_lower = request_body.key:lower()
     end
@@ -32,6 +32,25 @@ local function create_wsse_key(self, db, helpers)
 end
 
 return {
+    ["/wsse_keys/secrets"] = {
+        methods = {
+            PATCH = function(self, db, helpers)
+                local path = EncryptionKeyPathRetriever(db):find_key_path()
+                if path and path ~= ngx.null then
+                    local crypt = Crypt(path)
+                    local dao = db.wsse_keys;
+                    for wsse_key in dao:each() do
+                        if not wsse_key.encrypted_secret then
+                            local encrypted_secret = crypt:encrypt(wsse_key.secret)
+                            dao:update({ id = wsse_key.id }, {
+                                encrypted_secret = encrypted_secret
+                            })
+                        end
+                    end
+                end
+            end
+        }
+    },
     ["/consumers/:consumers/wsse_key"] = {
         schema = wsse_keys_schema,
         methods = {

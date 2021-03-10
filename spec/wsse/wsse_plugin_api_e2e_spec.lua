@@ -409,4 +409,129 @@ describe("WSSE #plugin #api #e2e", function()
             assert.are.equals(200, response.status)
         end)
     end)
+
+    context("PATCH secrets", function()
+        it("should do nothing when encryption_key_path is missing", function()
+            kong_sdk.plugins:create({
+                name = "wsse"
+            })
+            db.connector:query("UPDATE plugins SET config = config - 'encryption_key_path' WHERE name = 'wsse'")
+            local wsse_key = send_admin_request({
+                method = "POST",
+                path = "/consumers/" .. consumer.id .. "/wsse_key",
+                body = {
+                    key = 'IRRELEVANT',
+                    secret = 'secret'
+                },
+                headers = {
+                    ["Content-Type"] = "application/json"
+                }
+            })
+            local response = send_admin_request({
+                method = "PATCH",
+                path = "/wsse_keys/secrets"
+            })
+
+            assert.are.equals(200, response.status)
+            wsse_key = assert(db.wsse_keys:select({ id = wsse_key.body.id }))
+            assert.is_nil(wsse_key.encrypted_secret)
+        end)
+
+        it("should do nothing when encryption_key_path is null", function()
+            kong_sdk.plugins:create({
+                name = "wsse"
+            })
+            local wsse_key = send_admin_request({
+                method = "POST",
+                path = "/consumers/" .. consumer.id .. "/wsse_key",
+                body = {
+                    key = 'IRRELEVANT',
+                    secret = 'secret'
+                },
+                headers = {
+                    ["Content-Type"] = "application/json"
+                }
+            })
+            local response = send_admin_request({
+                method = "PATCH",
+                path = "/wsse_keys/secrets"
+            })
+
+            assert.are.equals(200, response.status)
+            wsse_key = assert(db.wsse_keys:select({ id = wsse_key.body.id }))
+            assert.is_nil(wsse_key.encrypted_secret)
+        end)
+
+        it("should encrypt secrets", function()
+            local ecrypto = get_easy_crypto()
+            kong_sdk.plugins:create({
+                name = "wsse"
+            })
+            local wsse_key = send_admin_request({
+                method = "POST",
+                path = "/consumers/" .. consumer.id .. "/wsse_key",
+                body = {
+                    key = 'IRRELEVANT',
+                    secret = 'secret'
+                },
+                headers = {
+                    ["Content-Type"] = "application/json"
+                }
+            })
+            db.connector:query("UPDATE plugins SET config = config || '{ \"encryption_key_path\": \"/secret.txt\"}' WHERE name = 'wsse'")
+
+            local response = send_admin_request({
+                method = "PATCH",
+                path = "/wsse_keys/secrets"
+            })
+
+            assert.are.equals(200, response.status)
+            local encryption_key = load_encryption_key_from_file("/secret.txt")
+            wsse_key = assert(db.wsse_keys:select({ id = wsse_key.body.id }))
+            assert.are.equals("secret", ecrypto:decrypt(encryption_key, wsse_key.encrypted_secret))
+        end)
+
+        it("should encrypt secrets only when the encrypted secret is null", function()
+            local ecrypto = get_easy_crypto()
+            kong_sdk.plugins:create({
+                name = "wsse"
+            })
+            local first_wsse_key = send_admin_request({
+                method = "POST",
+                path = "/consumers/" .. consumer.id .. "/wsse_key",
+                body = {
+                    key = 'key001',
+                    secret = '53cR37',
+                    encrypted_secret = '3Ncrypt3D_53cr3t'
+                },
+                headers = {
+                    ["Content-Type"] = "application/json"
+                }
+            })
+            local second_wsse_key = send_admin_request({
+                method = "POST",
+                path = "/consumers/" .. consumer.id .. "/wsse_key",
+                body = {
+                    key = 'key002',
+                    secret = 'secret'
+                },
+                headers = {
+                    ["Content-Type"] = "application/json"
+                }
+            })
+            db.connector:query("UPDATE plugins SET config = config || '{ \"encryption_key_path\": \"/secret.txt\"}' WHERE name = 'wsse'")
+
+            local response = send_admin_request({
+                method = "PATCH",
+                path = "/wsse_keys/secrets"
+            })
+
+            assert.are.equals(200, response.status)
+            first_wsse_key = assert(db.wsse_keys:select({ id = first_wsse_key.body.id }))
+            assert.are.equals("3Ncrypt3D_53cr3t", first_wsse_key.encrypted_secret)
+            local encryption_key = load_encryption_key_from_file("/secret.txt")
+            second_wsse_key = assert(db.wsse_keys:select({ id = second_wsse_key.body.id }))
+            assert.are.equals("secret", ecrypto:decrypt(encryption_key, second_wsse_key.encrypted_secret))
+        end)
+    end)
 end)
