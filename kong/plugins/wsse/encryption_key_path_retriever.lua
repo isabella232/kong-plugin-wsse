@@ -16,6 +16,10 @@ function EncryptionKeyPathRetriever:find_key_path()
         return nil
     end
 
+    if wsse_plugins[1].config.encryption_key_path == nil then
+        return ngx.null
+    end
+
     return wsse_plugins[1].config.encryption_key_path
 end
 

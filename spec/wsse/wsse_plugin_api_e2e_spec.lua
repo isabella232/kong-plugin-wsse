@@ -17,7 +17,7 @@ describe("WSSE #plugin #api #e2e", function()
         })
         return ecrypto
     end
-    
+
     local function load_encryption_key_from_file(file_path)
         local file = assert(io.open(file_path, "r"))
         local encryption_key = file:read("*all")
@@ -109,7 +109,7 @@ describe("WSSE #plugin #api #e2e", function()
                 name = "testservice",
                 url = "http://mockbin:8080/request"
             })
-            
+
             local plugin = kong_sdk.plugins:create({
                 service = { id = service.id },
                 name = "wsse",
@@ -151,6 +151,57 @@ describe("WSSE #plugin #api #e2e", function()
 
                 assert.are.equals(412, response.status)
                 assert.are.equals("Encryption key was not defined", response.body.message)
+            end)
+        end)
+
+        context("encryption_key_path config param", function()
+            it("should respond with success when config param not exists", function()
+                local plugin = kong_sdk.plugins:create({
+                    name = "wsse"
+                })
+                local result, err = db.connector:query("UPDATE plugins SET config = config - 'encryption_key_path' WHERE name = 'wsse'")
+                local response = send_admin_request({
+                    method = "POST",
+                    path = "/consumers/" .. consumer.id .. "/wsse_key",
+                    body = {
+                        key = "irrelevant",
+                        secret = "irrelevant"
+                    },
+                    headers = {
+                        ["Content-Type"] = "application/json"
+                    }
+                })
+
+                assert.are.equals(201, response.status)
+            end)
+
+            it("should respond with success when config param is null", function()
+                local plugin = kong_sdk.plugins:create({
+                    name = "wsse"
+                })
+                local response = send_admin_request({
+                    method = "POST",
+                    path = "/consumers/" .. consumer.id .. "/wsse_key",
+                    body = {
+                        key = "irrelevant",
+                        secret = "irrelevant"
+                    },
+                    headers = {
+                        ["Content-Type"] = "application/json"
+                    }
+                })
+
+                assert.are.equals(201, response.status)
+            end)
+
+            it("should respond with error when config param is empty", function()
+                local _, response = pcall(function()
+                    kong_sdk.plugins:create({
+                        name = "wsse",
+                        config = { encryption_key_path = "" }
+                    })
+                end)
+                assert.are.equals(400, response.status)
             end)
         end)
     end)
