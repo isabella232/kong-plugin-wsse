@@ -29,7 +29,7 @@ describe("WSSE #plugin #schema #e2e", function()
         local plugin = kong_sdk.plugins:create({
             service = { id = service.id },
             name = "wsse",
-            config = {}
+            config = { encryption_key_path = "/secret.txt" }
         })
 
         assert.are.equals(plugin.config.anonymous, ngx.null)
@@ -38,15 +38,6 @@ describe("WSSE #plugin #schema #e2e", function()
         assert.are.equals(plugin.config.strict_key_matching, true)
         assert.are.equals(plugin.config.message_template, '{"message": "%s"}')
         assert.are.equals(plugin.config.status_code, 401)
-    end)
-
-    it("should have encryption_key_path parameter in config", function()
-        local plugin = kong_sdk.plugins:create({
-            service = { id = service.id },
-            name = "wsse",
-            config = { encryption_key_path = "/secret.txt" }
-        })
-
         assert.are.equals(plugin.config.encryption_key_path, "/secret.txt")
     end)
 
@@ -55,7 +46,10 @@ describe("WSSE #plugin #schema #e2e", function()
             kong_sdk.plugins:create({
                 service = { id = service.id },
                 name = "wsse",
-                config = { use_encrypted_secret = "xxx" }
+                config = {
+                    encryption_key_path = "/secret.txt",
+                    use_encrypted_secret = "xxx"
+                }
             })
         end)
 
@@ -69,7 +63,10 @@ describe("WSSE #plugin #schema #e2e", function()
                 kong_sdk.plugins:create({
                     service = { id = service.id },
                     name = "wsse",
-                    config = { anonymous = "not-a-valid-uuid" }
+                    config = {
+                        encryption_key_path = "/secret.txt",
+                        anonymous = "not-a-valid-uuid"
+                    }
                 })
             end)
 
@@ -86,7 +83,10 @@ describe("WSSE #plugin #schema #e2e", function()
                     kong_sdk.plugins:create({
                         service = { id = service.id },
                         name = "wsse",
-                        config = { message_template = test_template }
+                        config = {
+                            encryption_key_path = "/secret.txt",
+                            message_template = test_template
+                        }
                     })
                 end)
 
@@ -102,7 +102,10 @@ describe("WSSE #plugin #schema #e2e", function()
                 kong_sdk.plugins:create({
                     service = { id = service.id },
                     name = "wsse",
-                    config = { status_code = 66 }
+                    config = {
+                        encryption_key_path = "/secret.txt",
+                        status_code = 66
+                    }
                 })
             end)
 
@@ -115,7 +118,10 @@ describe("WSSE #plugin #schema #e2e", function()
                 kong_sdk.plugins:create({
                     service = { id = service.id },
                     name = "wsse",
-                    config = { status_code = 666 }
+                    config = {
+                        encryption_key_path = "/secret.txt",
+                        status_code = 666
+                    }
                 })
             end)
 
@@ -128,7 +134,10 @@ describe("WSSE #plugin #schema #e2e", function()
                 return kong_sdk.plugins:create({
                     service = { id = service.id },
                     name = "wsse",
-                    config = { status_code = 400 }
+                    config = {
+                        encryption_key_path = "/secret.txt",
+                        status_code = 400
+                    }
                 })
             end)
 
@@ -136,45 +145,44 @@ describe("WSSE #plugin #schema #e2e", function()
         end)
     end)
 
-    context("when encryption_key_path field is set", function()
-        it("should respond 400 when encryption file does not exist", function()
-            local _, response = pcall(function()
-                kong_sdk.plugins:create({
-                    service = { id = service.id },
-                    name = "wsse",
-                    config = { encryption_key_path = "/non-existing-file.txt" }
-                })
-            end)
-
-            assert.are.equals(400, response.status)
-            assert.are.equals("Encryption key file could not be found.", response.body.fields.config["@entity"][1])
-        end)
-
-        it("should respond 400 when encryption file path does not equal with the other wsse plugin configurations", function()
-            local other_service = kong_sdk.services:create({
-                name = "second",
-                url = "http://mockbin:8080/request"
-            })
-
-            local f = io.open("/tmp/other_secret.txt", "w")
-            f:close()
-
+    it("should respond 400 when encryption file does not exist", function()
+        local _, response = pcall(function()
             kong_sdk.plugins:create({
                 service = { id = service.id },
                 name = "wsse",
-                config = { encryption_key_path = "/secret.txt" }
+                config = { encryption_key_path = "/non-existing-file.txt" }
             })
-
-            local _, response = pcall(function()
-                kong_sdk.plugins:create({
-                    service = { id = other_service.id },
-                    name = "wsse",
-                    config = { encryption_key_path = "/tmp/other_secret.txt" }
-                })
-            end)
-
-            assert.are.equals(400, response.status)
-            assert.are.equals("All Wsse plugins must be configured to use the same encryption file.", response.body.fields.config["@entity"][1])
         end)
+
+        assert.are.equals(400, response.status)
+        assert.are.equals("Encryption key file could not be found.", response.body.fields.config["@entity"][1])
     end)
+
+    it("should respond 400 when encryption file path does not equal with the other wsse plugin configurations", function()
+        local other_service = kong_sdk.services:create({
+            name = "second",
+            url = "http://mockbin:8080/request"
+        })
+
+        local f = io.open("/tmp/other_secret.txt", "w")
+        f:close()
+
+        kong_sdk.plugins:create({
+            service = { id = service.id },
+            name = "wsse",
+            config = { encryption_key_path = "/secret.txt" }
+        })
+
+        local _, response = pcall(function()
+            kong_sdk.plugins:create({
+                service = { id = other_service.id },
+                name = "wsse",
+                config = { encryption_key_path = "/tmp/other_secret.txt" }
+            })
+        end)
+
+        assert.are.equals(400, response.status)
+        assert.are.equals("All Wsse plugins must be configured to use the same encryption file.", response.body.fields.config["@entity"][1])
+    end)
+
 end)

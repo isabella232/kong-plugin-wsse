@@ -17,7 +17,7 @@ describe("WSSE #plugin #handler #e2e", function()
         })
         return ecrypto
     end
-    
+
     local function load_encryption_key_from_file(file_path)
         local file = assert(io.open(file_path, "r"))
         local encryption_key = file:read("*all")
@@ -58,40 +58,6 @@ describe("WSSE #plugin #handler #e2e", function()
     context("when encryption key path was not given", function()
 
         -- TODO: The order of the tests matters, the issue is unknown
-        it("should proxy the request to the upstream on successful auth when encryption related fields are not set", function()
-
-            kong_sdk.plugins:create({
-                service = { id = service.id },
-                name = "wsse",
-                config = {}
-            })
-
-            local header = Wsse.generate_header("test2", "test2", uuid())
-
-            send_admin_request({
-                method = "POST",
-                path = "/consumers/" .. consumer.id .. "/wsse_key",
-                body = {
-                    key = 'test2',
-                    secret = "test2",
-                },
-                headers = {
-                    ["Content-Type"] = "application/json"
-                }
-            })
-
-            local response = send_request({
-                method = "GET",
-                path = "/request",
-                headers = {
-                    ["Host"] = "test1.com",
-                    ["X-WSSE"] = header
-                }
-            })
-
-            assert.are.equals(200, response.status)
-        end)
-
         it("should proxy the request to the upstream on successful auth when flipper is off", function()
             kong_sdk.plugins:create({
                 service = { id = service.id },
