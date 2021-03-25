@@ -60,15 +60,6 @@ function KeyDb:find_by_username(username)
         wsse_key.secret = self.crypto:decrypt(wsse_key.encrypted_secret)
     end
 
-    if self.use_encrypted_secret == "darklaunch" then
-        local decrypted_secret = self.crypto:decrypt(wsse_key.encrypted_secret)
-        if wsse_key.secret ~= decrypted_secret then
-            Logger.getInstance(ngx):logWarning(
-                { msg = ('Found not matching secret for %s'):format(wsse_key.key)}
-            );
-        end
-    end
-
     return wsse_key
 end
 

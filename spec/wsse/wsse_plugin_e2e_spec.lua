@@ -55,80 +55,40 @@ describe("WSSE #plugin #handler #e2e", function()
         })
     end)
 
-    context("when encryption key path was not given", function()
+    it("should proxy the request to the upstream on successful auth when flipper is off", function()
+        kong_sdk.plugins:create({
+            service = { id = service.id },
+            name = "wsse",
+            config = {
+                encryption_key_path = "/secret.txt",
+                use_encrypted_secret = "no"
+            }
+        })
 
-        -- TODO: The order of the tests matters, the issue is unknown
-        it("should proxy the request to the upstream on successful auth when flipper is off", function()
-            kong_sdk.plugins:create({
-                service = { id = service.id },
-                name = "wsse",
-                config = {
-                    encryption_key_path = "/secret.txt",
-                    use_encrypted_secret = "no"
-                }
-            })
+        local header = Wsse.generate_header("test1", "test1", uuid())
 
-            local header = Wsse.generate_header("test1", "test1", uuid())
+        send_admin_request({
+            method = "POST",
+            path = "/consumers/" .. consumer.id .. "/wsse_key",
+            body = {
+                key = 'test1',
+                secret = "test1",
+            },
+            headers = {
+                ["Content-Type"] = "application/json"
+            }
+        })
 
-            send_admin_request({
-                method = "POST",
-                path = "/consumers/" .. consumer.id .. "/wsse_key",
-                body = {
-                    key = 'test1',
-                    secret = "test1",
-                },
-                headers = {
-                    ["Content-Type"] = "application/json"
-                }
-            })
+        local response = send_request({
+            method = "GET",
+            path = "/request",
+            headers = {
+                ["Host"] = "test1.com",
+                ["X-WSSE"] = header
+            }
+        })
 
-            local response = send_request({
-                method = "GET",
-                path = "/request",
-                headers = {
-                    ["Host"] = "test1.com",
-                    ["X-WSSE"] = header
-                }
-            })
-
-            assert.are.equals(200, response.status)
-        end)
-
-        it("should proxy the request to the upstream on successful auth when flipper is in darklaunch mode", function()
-            kong_sdk.plugins:create({
-                service = { id = service.id },
-                name = "wsse",
-                config = {
-                    encryption_key_path = "/secret.txt",
-                    use_encrypted_secret = "darklaunch"
-                }
-            })
-
-            local header = Wsse.generate_header("test", "test", uuid())
-
-            send_admin_request({
-                method = "POST",
-                path = "/consumers/" .. consumer.id .. "/wsse_key",
-                body = {
-                    key = 'test',
-                    secret = "test",
-                },
-                headers = {
-                    ["Content-Type"] = "application/json"
-                }
-            })
-
-            local response = send_request({
-                method = "GET",
-                path = "/request",
-                headers = {
-                    ["Host"] = "test1.com",
-                    ["X-WSSE"] = header
-                }
-            })
-
-            assert.are.equals(200, response.status)
-        end)
+        assert.are.equals(200, response.status)
     end)
 
     context("when no anonymous consumer was configured", function()

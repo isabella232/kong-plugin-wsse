@@ -54,7 +54,7 @@ describe("WSSE #plugin #schema #e2e", function()
         end)
 
         assert.are.equals(400, response.status)
-        assert.are.equals("expected one of: yes, no, darklaunch", response.body.fields.config.use_encrypted_secret)
+        assert.are.equals("expected one of: yes, no", response.body.fields.config.use_encrypted_secret)
     end)
 
     context("when anonymous field is set", function()

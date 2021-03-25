@@ -1,7 +1,6 @@
 local Logger = require "logger"
 local KeyDb = require "kong.plugins.wsse.key_db"
 local EasyCrypto = require "resty.easy-crypto"
-local Crypt = require "kong.plugins.wsse.crypt"
 
 Logger.getInstance = function()
     return {
@@ -13,23 +12,6 @@ end
 describe("KeyDb", function()
 
     local original_kong
-
-    local function get_easy_crypto()
-        local ecrypto = EasyCrypto:new({
-            saltSize = 12,
-            ivSize = 16,
-            iterationCount = 10000
-        })
-        return ecrypto
-    end
-    
-    local function load_encryption_key_from_file(file_path)
-        local file = assert(io.open(file_path, "r"))
-        local encryption_key = file:read("*all")
-        file:close()
-        return encryption_key
-    end
-
 
     setup(function()
         original_kong = _G.kong
@@ -122,19 +104,18 @@ describe("KeyDb", function()
         end)
 
         context("when kong queries the database and returns a result", function()
-            local encrypted_secret = "encrypted_irrelevant";
             local crypt = {
-                decrypt = function() 
+                decrypt = function()
                     return "decrypted_irrelevant"
                 end
             }
-            
+
             before_each(function()
                 local counter = 0;
                 local key = {
                     key = "username",
                     secret = "irrelevant",
-                    encrypted_secret,
+                    encrypted_secret = "encrypted_irrelevant",
                     consumer_id = "consumer"
                 }
 
@@ -166,7 +147,7 @@ describe("KeyDb", function()
                 local expected_key = {
                     key = "username",
                     secret = "decrypted_irrelevant",
-                    encrypted_secret,
+                    encrypted_secret = "encrypted_irrelevant",
                     consumer = {
                         id = "consumer"
                     }
@@ -185,37 +166,18 @@ describe("KeyDb", function()
                     local expected_key = {
                         key = "username",
                         secret = "irrelevant",
-                        encrypted_secret,
+                        encrypted_secret = "encrypted_irrelevant",
                         consumer = {
                             id = "consumer"
                         }
                     }
-    
+
                     local key = KeyDb(crypt, strict_key_matching, use_encrypted_key):find_by_username(username);
-    
+
                     assert.are.same(expected_key, key)
                 end)
             end)
 
-            context("if flipper is in darklaunch mode", function()
-                it("should return wsse key", function()
-                    local strict_key_matching = false;
-                    local use_encrypted_key = "darklaunch";
-                    local username = "USERNAME";
-                    local expected_key = {
-                        key = "username",
-                        secret = "irrelevant",
-                        encrypted_secret,
-                        consumer = {
-                            id = "consumer"
-                        }
-                    }
-    
-                    local key = KeyDb(crypt, strict_key_matching, use_encrypted_key):find_by_username(username);
-    
-                    assert.are.same(expected_key, key)
-                end)
-            end)
         end)
     end)
 end)

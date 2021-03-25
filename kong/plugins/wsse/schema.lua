@@ -78,7 +78,7 @@ return {
                     { encryption_key_path = { type = "string", required = true } },
                     { message_template = { type = "string", default = '{"message": "%s"}', custom_validator = ensure_message_template_is_valid_json } },
                     { status_code = { type = "number", default = 401, custom_validator = validate_http_status_code } },
-                    { use_encrypted_secret = { type = "string", one_of = { "yes", "no", "darklaunch" }, default = "no" } }
+                    { use_encrypted_secret = { type = "string", one_of = { "yes", "no" }, default = "no" } }
                 },
                 entity_checks = {
                     { custom_entity_check = {
