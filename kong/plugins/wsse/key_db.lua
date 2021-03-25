@@ -58,6 +58,8 @@ function KeyDb:find_by_username(username)
 
     if self.use_encrypted_secret == "yes" then
         wsse_key.secret = self.crypto:decrypt(wsse_key.encrypted_secret)
+    else
+        wsse_key.secret = self.crypto:decrypt(wsse_key.secret)
     end
 
     return wsse_key

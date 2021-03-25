@@ -48,7 +48,7 @@ describe("PluginConfig", function()
                 strict_key_matching = true,
                 message_template = '{"message": "%s"}',
                 status_code = 401,
-                use_encrypted_secret = 'no'
+                use_encrypted_secret = 'yes'
             }
 
             assert.are.same(expected_config, merged_config)

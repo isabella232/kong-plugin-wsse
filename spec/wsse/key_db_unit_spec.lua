@@ -1,6 +1,5 @@
 local Logger = require "logger"
 local KeyDb = require "kong.plugins.wsse.key_db"
-local EasyCrypto = require "resty.easy-crypto"
 
 Logger.getInstance = function()
     return {
@@ -105,8 +104,8 @@ describe("KeyDb", function()
 
         context("when kong queries the database and returns a result", function()
             local crypt = {
-                decrypt = function()
-                    return "decrypted_irrelevant"
+                decrypt = function(self, secret)
+                    return "decrypted_" .. secret
                 end
             }
 
@@ -114,8 +113,8 @@ describe("KeyDb", function()
                 local counter = 0;
                 local key = {
                     key = "username",
-                    secret = "irrelevant",
-                    encrypted_secret = "encrypted_irrelevant",
+                    secret = "secret",
+                    encrypted_secret = "encrypted_secret",
                     consumer_id = "consumer"
                 }
 
@@ -146,8 +145,8 @@ describe("KeyDb", function()
                 local username = "USERNAME";
                 local expected_key = {
                     key = "username",
-                    secret = "decrypted_irrelevant",
-                    encrypted_secret = "encrypted_irrelevant",
+                    secret = "decrypted_encrypted_secret",
+                    encrypted_secret = "encrypted_secret",
                     consumer = {
                         id = "consumer"
                     }
@@ -158,24 +157,22 @@ describe("KeyDb", function()
                 assert.are.same(expected_key, key)
             end)
 
-            context("if flipper is off", function()
-                it("should return a wsse key", function()
-                    local strict_key_matching = false;
-                    local use_encrypted_key = "no";
-                    local username = "USERNAME";
-                    local expected_key = {
-                        key = "username",
-                        secret = "irrelevant",
-                        encrypted_secret = "encrypted_irrelevant",
-                        consumer = {
-                            id = "consumer"
-                        }
+            it("should return a wsse key when flipper is off", function()
+                local strict_key_matching = false;
+                local use_encrypted_key = "no";
+                local username = "USERNAME";
+                local expected_key = {
+                    key = "username",
+                    secret = "decrypted_secret",
+                    encrypted_secret = "encrypted_secret",
+                    consumer = {
+                        id = "consumer"
                     }
+                }
 
-                    local key = KeyDb(crypt, strict_key_matching, use_encrypted_key):find_by_username(username);
+                local key = KeyDb(crypt, strict_key_matching, use_encrypted_key):find_by_username(username);
 
-                    assert.are.same(expected_key, key)
-                end)
+                assert.are.same(expected_key, key)
             end)
 
         end)
