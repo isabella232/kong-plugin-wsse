@@ -134,8 +134,7 @@ function Wsse:authenticate(header_string)
     if not success then
         error({
             msg = "Credentials are invalid.",
-            reason = result.msg,
-            debug = result
+            reason = result.msg
         })
     end
 

@@ -509,4 +509,62 @@ describe("WSSE #plugin #handler #e2e", function()
             assert.are.equals("WSSE authentication header is missing.", response.body['custom-message'])
         end)
     end)
+
+    it("should not modify the cache by reference", function()
+        local plugin = kong_sdk.plugins:create({
+            service = { id = service.id },
+            name = "wsse",
+            config = {
+                encryption_key_path = "/secret.txt"
+            }
+        })
+
+        send_admin_request({
+            method = "POST",
+            path = "/consumers/" .. consumer.id .. "/wsse_key",
+            body = {
+                key = 'my-key',
+                secret = "secret",
+            },
+            headers = {
+                ["Content-Type"] = "application/json"
+            }
+        })
+
+        send_admin_request({
+            method = "PATCH",
+            path = "/plugins/" .. plugin.id,
+            body = {
+                config = {
+                    use_encrypted_secret = "no"
+                }
+            },
+            headers = {
+                ["Content-Type"] = "application/json"
+            }
+        })
+
+        local header = Wsse.generate_header("my-key", "secret", uuid())
+
+        local first_response = send_request({
+            method = "GET",
+            path = "/request",
+            headers = {
+                ["Host"] = "test1.com",
+                ["X-WSSE"] = header
+            }
+        })
+        local second_response = send_request({
+            method = "GET",
+            path = "/request",
+            headers = {
+                ["Host"] = "test1.com",
+                ["X-WSSE"] = header
+            }
+        })
+
+        assert.are.equals(200, first_response.status)
+        assert.are.equals(200, second_response.status)
+    end)
+
 end)

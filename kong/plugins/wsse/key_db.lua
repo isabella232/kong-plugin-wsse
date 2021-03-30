@@ -1,5 +1,6 @@
 local Object = require "classic"
 local Logger = require "logger"
+local utils = require "kong.tools.utils"
 
 local KeyDb = Object:extend()
 
@@ -56,13 +57,10 @@ function KeyDb:find_by_username(username)
         error({ msg = "WSSE key can not be found." })
     end
 
-    if self.use_encrypted_secret == "yes" then
-        wsse_key.secret = self.crypto:decrypt(wsse_key.encrypted_secret)
-    else
-        wsse_key.secret = self.crypto:decrypt(wsse_key.secret)
-    end
+    local wsse_key_copy = utils.deep_copy(wsse_key)
+    wsse_key_copy.secret = self.crypto:decrypt(self.use_encrypted_secret == "yes" and wsse_key.encrypted_secret or wsse_key.secret)
 
-    return wsse_key
+    return wsse_key_copy
 end
 
 return KeyDb
