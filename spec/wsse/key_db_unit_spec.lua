@@ -11,6 +11,11 @@ end
 describe("KeyDb", function()
 
     local original_kong
+    local crypt = {
+        decrypt = function(self, secret)
+            return "decrypted_" .. secret
+        end
+    }
 
     setup(function()
         original_kong = _G.kong
@@ -44,7 +49,7 @@ describe("KeyDb", function()
                 }
 
                 assert.has.errors(function()
-                    KeyDb(strict_key_matching):find_by_username(username)
+                    KeyDb(crypt, strict_key_matching):find_by_username(username)
                 end, expected_error)
             end)
 
@@ -56,7 +61,7 @@ describe("KeyDb", function()
                 }
 
                 assert.has.errors(function()
-                    KeyDb(strict_key_matching):find_by_username(username)
+                    KeyDb(crypt, strict_key_matching):find_by_username(username)
                 end, expected_error)
             end)
 
@@ -68,7 +73,7 @@ describe("KeyDb", function()
                 }
 
                 assert.has.errors(function()
-                    KeyDb(strict_key_matching):find_by_username(username)
+                    KeyDb(crypt, strict_key_matching):find_by_username(username)
                 end, expected_error)
             end)
         end)
@@ -97,24 +102,17 @@ describe("KeyDb", function()
                 }
 
                 assert.has.errors(function()
-                    KeyDb(strict_key_matching):find_by_username(username)
+                    KeyDb(crypt, strict_key_matching):find_by_username(username)
                 end, expected_error)
             end)
         end)
 
         context("when kong queries the database and returns a result", function()
-            local crypt = {
-                decrypt = function(self, secret)
-                    return "decrypted_" .. secret
-                end
-            }
-
             before_each(function()
                 local counter = 0;
                 local key = {
                     key = "username",
                     secret = "secret",
-                    encrypted_secret = "encrypted_secret",
                     consumer_id = "consumer"
                 }
 
@@ -141,40 +139,19 @@ describe("KeyDb", function()
 
             it("should return a wsse key", function()
                 local strict_key_matching = false;
-                local use_encrypted_key = "yes";
-                local username = "USERNAME";
-                local expected_key = {
-                    key = "username",
-                    secret = "decrypted_encrypted_secret",
-                    encrypted_secret = "encrypted_secret",
-                    consumer = {
-                        id = "consumer"
-                    }
-                }
-
-                local key = KeyDb(crypt, strict_key_matching, use_encrypted_key):find_by_username(username);
-
-                assert.are.same(expected_key, key)
-            end)
-
-            it("should return a wsse key when flipper is off", function()
-                local strict_key_matching = false;
-                local use_encrypted_key = "no";
                 local username = "USERNAME";
                 local expected_key = {
                     key = "username",
                     secret = "decrypted_secret",
-                    encrypted_secret = "encrypted_secret",
                     consumer = {
                         id = "consumer"
                     }
                 }
 
-                local key = KeyDb(crypt, strict_key_matching, use_encrypted_key):find_by_username(username);
+                local key = KeyDb(crypt, strict_key_matching):find_by_username(username);
 
                 assert.are.same(expected_key, key)
             end)
-
         end)
     end)
 end)

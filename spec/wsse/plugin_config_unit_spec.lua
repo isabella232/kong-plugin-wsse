@@ -47,8 +47,7 @@ describe("PluginConfig", function()
                 timeframe_validation_threshold_in_minutes = 5,
                 strict_key_matching = true,
                 message_template = '{"message": "%s"}',
-                status_code = 401,
-                use_encrypted_secret = 'yes'
+                status_code = 401
             }
 
             assert.are.same(expected_config, merged_config)

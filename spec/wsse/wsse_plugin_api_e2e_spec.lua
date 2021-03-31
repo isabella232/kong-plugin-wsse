@@ -132,7 +132,7 @@ describe("WSSE #plugin #api #e2e", function()
 
             local row = assert(db.wsse_keys:select({ id = response.body.id }))
 
-            assert.are.equals("secret", ecrypto:decrypt(encryption_key, row.encrypted_secret))
+            assert.are.equals("secret", ecrypto:decrypt(encryption_key, row.secret))
         end)
 
         context("when no plugin is added", function()

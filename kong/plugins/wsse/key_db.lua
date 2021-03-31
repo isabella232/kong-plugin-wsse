@@ -30,10 +30,9 @@ local function load_credential(username, strict_key_matching)
     return fix_consumer_reference(wsse_keys[1])
 end
 
-function KeyDb:new(crypto, strict_key_matching, use_encrypted_secret)
+function KeyDb:new(crypto, strict_key_matching)
     self.crypto = crypto
     self.strict_key_matching = strict_key_matching
-    self.use_encrypted_secret = use_encrypted_secret
 end
 
 function KeyDb:find_by_username(username)
@@ -58,7 +57,7 @@ function KeyDb:find_by_username(username)
     end
 
     local wsse_key_copy = utils.deep_copy(wsse_key)
-    wsse_key_copy.secret = self.crypto:decrypt(self.use_encrypted_secret == "yes" and wsse_key.encrypted_secret or wsse_key.secret)
+    wsse_key_copy.secret = self.crypto:decrypt(wsse_key.secret)
 
     return wsse_key_copy
 end

@@ -33,28 +33,11 @@ describe("WSSE #plugin #schema #e2e", function()
         })
 
         assert.are.equals(plugin.config.anonymous, ngx.null)
-        assert.are.equals(plugin.config.use_encrypted_secret, "yes")
         assert.are.equals(plugin.config.timeframe_validation_threshold_in_minutes, 5)
         assert.are.equals(plugin.config.strict_key_matching, true)
         assert.are.equals(plugin.config.message_template, '{"message": "%s"}')
         assert.are.equals(plugin.config.status_code, 401)
         assert.are.equals(plugin.config.encryption_key_path, "/secret.txt")
-    end)
-
-    it("should not allow invalid values in 'use_encrypted_secret'", function()
-        local _, response = pcall(function()
-            kong_sdk.plugins:create({
-                service = { id = service.id },
-                name = "wsse",
-                config = {
-                    encryption_key_path = "/secret.txt",
-                    use_encrypted_secret = "xxx"
-                }
-            })
-        end)
-
-        assert.are.equals(400, response.status)
-        assert.are.equals("expected one of: yes, no", response.body.fields.config.use_encrypted_secret)
     end)
 
     context("when anonymous field is set", function()

@@ -24,7 +24,7 @@ end
 
 local function authenticate(auth_header, plugin_config)
     local crypt = Crypt(plugin_config.encryption_key_path)
-    local key_db = KeyDb(crypt, plugin_config.strict_key_matching, plugin_config.use_encrypted_secret)
+    local key_db = KeyDb(crypt, plugin_config.strict_key_matching)
     local timeframe = plugin_config.timeframe_validation_threshold_in_minutes
 
     return Wsse(key_db, timeframe):authenticate(auth_header)

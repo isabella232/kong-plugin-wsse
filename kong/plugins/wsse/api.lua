@@ -22,9 +22,7 @@ local function create_wsse_key(self, db, helpers)
 
         if path ~= ngx.null then
             local crypt = Crypt(path)
-            local encrypted_secret = crypt:encrypt(request_body.secret)
-            request_body.secret = encrypted_secret
-            request_body.encrypted_secret = encrypted_secret
+            request_body.secret = crypt:encrypt(request_body.secret)
         end
     end
 

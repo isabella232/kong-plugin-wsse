@@ -37,6 +37,7 @@ build = {
     ["kong.plugins.wsse.wsse_lib"] = "kong/plugins/wsse/wsse_lib.lua",
     ["kong.plugins.wsse.migrations.000_base_wsse"] = "kong/plugins/wsse/migrations/000_base_wsse.lua",
     ["kong.plugins.wsse.migrations.001_add_encrypted_secret"] = "kong/plugins/wsse/migrations/001_add_encrypted_secret.lua",
+    ["kong.plugins.wsse.migrations.002_drop_encrypted_secret"] = "kong/plugins/wsse/migrations/002_drop_encrypted_secret.lua",
     ["kong.plugins.wsse.migrations.init"] = "kong/plugins/wsse/migrations/init.lua",
   }
 }

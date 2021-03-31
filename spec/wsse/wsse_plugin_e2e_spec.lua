@@ -55,42 +55,6 @@ describe("WSSE #plugin #handler #e2e", function()
         })
     end)
 
-    it("should proxy the request to the upstream on successful auth when flipper is off", function()
-        kong_sdk.plugins:create({
-            service = { id = service.id },
-            name = "wsse",
-            config = {
-                encryption_key_path = "/secret.txt",
-                use_encrypted_secret = "no"
-            }
-        })
-
-        local header = Wsse.generate_header("test1", "test1", uuid())
-
-        send_admin_request({
-            method = "POST",
-            path = "/consumers/" .. consumer.id .. "/wsse_key",
-            body = {
-                key = 'test1',
-                secret = "test1",
-            },
-            headers = {
-                ["Content-Type"] = "application/json"
-            }
-        })
-
-        local response = send_request({
-            method = "GET",
-            path = "/request",
-            headers = {
-                ["Host"] = "test1.com",
-                ["X-WSSE"] = header
-            }
-        })
-
-        assert.are.equals(200, response.status)
-    end)
-
     context("when no anonymous consumer was configured", function()
 
         before_each(function()
@@ -98,8 +62,7 @@ describe("WSSE #plugin #handler #e2e", function()
                 service = { id = service.id },
                 name = "wsse",
                 config = {
-                    encryption_key_path = "/secret.txt",
-                    use_encrypted_secret = "yes"
+                    encryption_key_path = "/secret.txt"
                 }
             })
         end)
@@ -255,8 +218,7 @@ describe("WSSE #plugin #handler #e2e", function()
                 name = "wsse",
                 config = {
                     anonymous = anonymous_consumer.id,
-                    encryption_key_path = "/secret.txt",
-                    use_encrypted_secret = "yes"
+                    encryption_key_path = "/secret.txt"
                 }
             })
         end)
@@ -427,8 +389,7 @@ describe("WSSE #plugin #handler #e2e", function()
                 name = "wsse",
                 config = {
                     strict_key_matching = false,
-                    encryption_key_path = "/secret.txt",
-                    use_encrypted_secret = "yes"
+                    encryption_key_path = "/secret.txt"
                 }
             })
         end)
@@ -525,19 +486,6 @@ describe("WSSE #plugin #handler #e2e", function()
             body = {
                 key = 'my-key',
                 secret = "secret",
-            },
-            headers = {
-                ["Content-Type"] = "application/json"
-            }
-        })
-
-        send_admin_request({
-            method = "PATCH",
-            path = "/plugins/" .. plugin.id,
-            body = {
-                config = {
-                    use_encrypted_secret = "no"
-                }
             },
             headers = {
                 ["Content-Type"] = "application/json"
